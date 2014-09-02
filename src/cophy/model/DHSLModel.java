@@ -1,3 +1,24 @@
+/**
+ * DHSLModel.java
+ * 
+ * Cophy: Cophylogenetics for BEAST
+ * 
+ * Copyright (C) 2014 Arman D. Bilge <armanbilge@gmail.com>
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package cophy.model;
 
 import dr.evolution.tree.Tree;
@@ -12,16 +33,20 @@ import dr.xml.XMLObject;
 import dr.xml.XMLParseException;
 import dr.xml.XMLSyntaxRule;
 
+/**
+ * 
+ * @author Arman D. Bilge <armanbilge@gmail.com>
+ *
+ */
 public class DHSLModel extends AbstractCophylogenyModel {
 
     private static final long serialVersionUID = 2041282129285374772L;
 
     private static final String DHSL_MODEL = "DHSLModel";
     
-    protected final Tree hostTree;
     protected final Parameter birthDiffRateParameter;
-    protected final Parameter hostSwitchProportionParameter;
     protected final Parameter relativeDeathRateParameter;
+    protected final Parameter hostSwitchProportionParameter;
     protected final Parameter originHeightParameter;
 
     public DHSLModel(final Tree hostTree,
@@ -29,45 +54,94 @@ public class DHSLModel extends AbstractCophylogenyModel {
                      final Parameter relativeDeathRateParameter,
                      final Parameter hostSwitchProportionParameter,
                      final Parameter originHeightParameter) {
-        super(DHSL_MODEL);
-        this.hostTree = hostTree;
+        
+        super(DHSL_MODEL, hostTree);
+        
         this.birthDiffRateParameter = birthDiffRateParameter;
+        addVariable(birthDiffRateParameter);
+        
         this.relativeDeathRateParameter = relativeDeathRateParameter;
+        addVariable(relativeDeathRateParameter);
+        
         this.hostSwitchProportionParameter = hostSwitchProportionParameter;
+        addVariable(hostSwitchProportionParameter);
+        
         this.originHeightParameter = originHeightParameter;
+        addVariable(originHeightParameter);
     }
 
+    public Tree getHostTree() {
+        return hostTree;
+    }
+
+    public double getBirthDiffRate() {
+        return birthDiffRateParameter.getValue(0);
+    }
+
+    public double getRelativeDeathRate() {
+        return relativeDeathRateParameter.getValue(0);
+    }
+
+    public double getDuplicationProportion() {
+        return 1 - getHostSwitchProportion();
+    }
+    
+    public double getHostSwitchProportion() {
+        return hostSwitchProportionParameter.getValue(0);
+    }
+    
+    public double getBirthRate() {
+        return getBirthDiffRate() / (1 - getRelativeDeathRate());
+    }
+    
+    public double getDeathRate() {
+        return getBirthRate() - getBirthDiffRate();
+    }
+    
+    public double getDuplicationRate() {
+        return getBirthRate() * getDuplicationProportion();
+    }
+        
+    public double getHostSwitchRate() {
+        return getBirthRate() * getHostSwitchProportion();
+    }
+    
+    public double getLossRate() {
+        return getDeathRate();
+    }
+    
+    public double getOriginHeight() {
+        return originHeightParameter.getValue(0);
+    }
+    
     @Override
     protected void handleModelChangedEvent(final Model model,
                                            final Object object,
                                            final int index) {
-        // TODO Auto-generated method stub
-        
+        this.fireModelChanged();
     }
 
     @Override
-    protected void handleVariableChangedEvent(Variable variable, int index,
-            ChangeType type) {
-        // TODO Auto-generated method stub
-        
+    protected void handleVariableChangedEvent(@SuppressWarnings("rawtypes")
+                                              final Variable variable,
+                                              final int index,
+                                              final ChangeType type) {
+        fireModelChanged();
     }
 
     @Override
     protected void storeState() {
-        // TODO Auto-generated method stub
-        
+        // Nothing to do
     }
 
     @Override
     protected void restoreState() {
-        // TODO Auto-generated method stub
-        
+        // Nothing to do
     }
 
     @Override
     protected void acceptState() {
-        // TODO Auto-generated method stub
-        
+        // Nothing to do
     }
     
     public static final AbstractXMLObjectParser PARSER =

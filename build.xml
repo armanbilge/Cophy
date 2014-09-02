@@ -47,7 +47,7 @@
 
     <target name="dist" depends="compile">
         <mkdir dir="${dist}"/>
-        <jar jarfile="${dist}/org.cophy.Cophy.jar">
+        <jar jarfile="${dist}/cophy.Cophy.jar">
             <manifest>
                 <attribute name="Built-By" value="${user.name}"/>
             </manifest>

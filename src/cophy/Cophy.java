@@ -24,9 +24,12 @@ package cophy;
 import java.util.HashSet;
 import java.util.Set;
 
+import cophy.model.DHSLModel;
+import cophy.model.Reconciliation;
 import cophy.operation.CospeciationOperator;
 import cophy.operation.HostSwitchOperator;
 import cophy.operation.LeafHostSwitchOperator;
+import cophy.simulation.DHSLSimulator;
 import dr.app.plugin.Plugin;
 import dr.xml.XMLObjectParser;
 
@@ -39,10 +42,17 @@ public class Cophy implements Plugin {
     private final Set<XMLObjectParser> parsers;
     {
         parsers = new HashSet<XMLObjectParser>();
+        
+        // General cophylogeny parsers
         parsers.add(Reconciliation.PARSER);
         parsers.add(CospeciationOperator.PARSER);
         parsers.add(HostSwitchOperator.PARSER);
         parsers.add(LeafHostSwitchOperator.PARSER);
+        
+        // DHSL Model
+        parsers.add(DHSLModel.PARSER);
+        parsers.add(DHSLSimulator.PARSER);
+
     }
     
     @Override

@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cophy;
+package cophy.model;
 
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
@@ -46,11 +46,13 @@ public class Reconciliation extends AbstractModel {
     
     protected final Tree guestTree;
     protected final Tree hostTree;
+    protected final boolean[] sampleable;
     protected int[] map;
     protected int[] storedMap;
     
     public Reconciliation(final Tree guestTree,
                           final Tree hostTree) {
+        
         super(RECONCILIATION);
         this.guestTree = guestTree;
         if (guestTree instanceof Model)
@@ -59,6 +61,10 @@ public class Reconciliation extends AbstractModel {
         if (hostTree instanceof Model)
             addModel((Model) hostTree);
         map = new int[guestTree.getNodeCount()];
+        sampleable = new boolean[guestTree.getNodeCount()];
+        for (int i = 0; i < sampleable.length; ++i)
+            sampleable[i] = !guestTree.isExternal(guestTree.getNode(i));
+                
     }
     
     public NodeRef getHost(final NodeRef guest) {
@@ -66,6 +72,9 @@ public class Reconciliation extends AbstractModel {
     }
     
     public void setHost(final NodeRef guest, final NodeRef host) {
+        if (!sampleable[guest.getNumber()])
+            throw new RuntimeException("Cannot set host for node "
+                                                                + guest + "!");
         map[guest.getNumber()] = host.getNumber();
         fireModelChanged();
     }
@@ -74,7 +83,7 @@ public class Reconciliation extends AbstractModel {
     protected void handleModelChangedEvent(final Model model,
                                            final Object object,
                                            final int index) {
-        fireModelChanged();
+        // Nothing to do
     }
 
     @Override
@@ -82,7 +91,7 @@ public class Reconciliation extends AbstractModel {
                                               final Variable variable,
                                               final int index,
                                               final ChangeType type) {
-        fireModelChanged();
+        // Nothing to do
     }
 
     @Override

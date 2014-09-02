@@ -99,20 +99,27 @@ public final class CophylogenyUtils {
         throw new RuntimeException();
     }
     
+    public static final class RandomWeightedInteger {
+        
+        final double[] weights;
+        final double sum;
+        
+        public RandomWeightedInteger(final double...weights) {
+            this.weights = weights;
+            sum = MathUtils.getTotal(weights);
+        }
+        
+        public final int nextInt() {
+            final double r = (1 - MathUtils.nextDouble()) * sum;
+            int i;
+            for (i = 0; i < weights.length && weights[i] < r; ++i);
+            return i;
+        }
+        
+    }
+    
     public static final int nextWeightedInteger(final double...weights) {
-        
-        final double sum = MathUtils.getTotal(weights);
-        
-        final double[] normalizedCDF = new double[weights.length - 1];
-        normalizedCDF[0] = weights[0] / sum;
-        for (int i = 1; i < normalizedCDF.length; ++i)
-            normalizedCDF[i] = weights[i] / sum + normalizedCDF[i - 1];
-        
-        final double U = 1 - MathUtils.nextDouble();        
-        int i;
-        for (i = 0; i < normalizedCDF.length && normalizedCDF[i] < U; ++i);
-        return i;
-        
+        return new RandomWeightedInteger(weights).nextInt();
     }
     
     public static final double nextPoissonTime(final double...lambdas) {

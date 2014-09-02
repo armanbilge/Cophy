@@ -24,7 +24,7 @@ package cophy.operation;
 import java.util.Set;
 
 import cophy.CophylogenyUtils;
-import cophy.Reconciliation;
+import cophy.model.Reconciliation;
 import dr.evolution.tree.MutableTree;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;

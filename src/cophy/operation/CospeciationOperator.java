@@ -21,7 +21,7 @@
 
 package cophy.operation;
 
-import cophy.Reconciliation;
+import cophy.model.Reconciliation;
 import dr.evolution.tree.MutableTree;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
