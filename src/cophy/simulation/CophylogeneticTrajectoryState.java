@@ -21,6 +21,8 @@
 
 package cophy.simulation;
 
+import java.util.Set;
+
 import dr.evolution.tree.NodeRef;
 
 /**
@@ -32,6 +34,14 @@ public interface CophylogeneticTrajectoryState {
 
     public int getGuestCountAtHost(final NodeRef host);
     
-    public double getCurrentHeight();
+    public int getTotalGuestCount();
+    
+    public int getHostCount();
+    
+    public Set<NodeRef> getHosts();
+    
+    public double getHeight();
+    
+    public NodeRef getRandomWeightedHost();
     
 }

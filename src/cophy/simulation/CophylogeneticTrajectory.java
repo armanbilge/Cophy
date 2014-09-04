@@ -72,4 +72,13 @@ public class CophylogeneticTrajectory {
         
     }
     
+    public CospeciationEvent getNextCospeciationEvent() {
+        final double height = state.getHeight();
+        return (CospeciationEvent) events.lowerEntry(height).getValue();
+    }
+
+    public void applyNextCospeciationEvent() {
+        state.applyEvent(getNextCospeciationEvent());
+    }
+    
 }

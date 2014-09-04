@@ -22,8 +22,11 @@
 package cophy;
 
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
+import cophy.particlefiltration.Particle;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 import dr.math.MathUtils;
@@ -99,6 +102,39 @@ public final class CophylogenyUtils {
         throw new RuntimeException();
     }
     
+    public static class RandomWeightedObject<T> {
+        
+        final LinkedHashMap<T,Double> weights;
+        final double sum;
+        
+        public RandomWeightedObject(Map<T,? extends Number> weights) {
+            double sum = 0.0;
+            this.weights = new LinkedHashMap<T,Double>(weights.size());
+            for (T key : weights.keySet()) {
+                final double weight = weights.get(key).doubleValue();
+                this.weights.put(key, weight);
+                sum += weight;
+            }
+            this.sum = sum;
+        }
+        
+        public final T nextObject() {
+            final double r = (1 - MathUtils.nextDouble()) * sum;
+            for (T key : weights.keySet()) {
+                if (weights.get(key) >= r)
+                    return key;
+            }
+            throw new RuntimeException();
+        }
+        
+    }
+    
+    public static final <T> T
+            nextWeightedObject(Map<T,? extends Number> weights) {
+        
+        return new RandomWeightedObject<T>(weights).nextObject();
+    }
+    
     public static final class RandomWeightedInteger {
         
         final double[] weights;
@@ -127,27 +163,27 @@ public final class CophylogenyUtils {
         return MathUtils.nextExponential(lambda);
     }
     
-//    public static final <T> void resample(Particle<T>[] particles) {
-//        
-//        final double[] weightsCDF = new double[particles.length - 1];
-//        @SuppressWarnings("unchecked")
-//        final Particle<T>[] particlesCopy = new Particle[particles.length];
-//        
-//        double sum = 0.0;
-//        for (int i = 0; i < particles.length - 1; ++i) {
-//            sum += particles[i].getWeight();
-//            weightsCDF[i] = sum;
-//            particlesCopy[i] = particles[i];
-//        }
-//        
-//        for (int i = 0; i < particles.length; ++i) {
-//            final double U = 1 - Randomizer.nextDouble();        
-//            int j;
-//            for (j = 0; j < weightsCDF.length && weightsCDF[j] < U; ++j);
-//            particles[i] = particlesCopy[j];
-//        }
-//                
-//    }
+    public static final <T> void resample(Particle<T>[] particles) {
+        
+        final double[] weightsCDF = new double[particles.length - 1];
+        @SuppressWarnings("unchecked")
+        final Particle<T>[] particlesCopy = new Particle[particles.length];
+        
+        double sum = 0.0;
+        for (int i = 0; i < particles.length - 1; ++i) {
+            sum += particles[i].getWeight();
+            weightsCDF[i] = sum;
+            particlesCopy[i] = particles[i];
+        }
+        
+        for (int i = 0; i < particles.length; ++i) {
+            final double U = 1 - MathUtils.nextDouble();        
+            int j;
+            for (j = 0; j < weightsCDF.length && weightsCDF[j] < U; ++j);
+            particles[i] = particlesCopy[j];
+        }
+                
+    }
 
     
 }

@@ -29,7 +29,6 @@ import cophy.simulation.CophylogeneticEvent.BirthEvent;
 import cophy.simulation.CophylogeneticEvent.DeathEvent;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.SimpleNode;
-import dr.evolution.tree.SimpleTree;
 import dr.evolution.tree.Tree;
 import dr.math.MathUtils;
 import dr.xml.AbstractXMLObjectParser;
@@ -152,6 +151,83 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
         
         return guestNode;
 
+    }
+    
+    public void resumeSimulation(final CophylogeneticTrajectory trajectory,
+                                 final double until) {
+        
+        final CophylogeneticTrajectoryState state =
+                trajectory.getCurrentState();
+        while (state.getHeight() > until) {
+            
+            final double nextCospeciationEventHeight =
+                    trajectory.getNextCospeciationEvent().getHeight();
+            while (true) {
+                
+                final int guestCount = state.getTotalGuestCount();
+                final double normalizedDuplicationRate =
+                        guestCount * model.getDuplicationRate();
+                final double normalizedHostSwitchRate =
+                        guestCount * model.getHostSwitchRate();
+                final double normalizedLossRate =
+                        guestCount * model.getLossRate();
+                final double nextEventHeight;
+                
+                if (state.getHostCount() > 1) {
+                    
+                    nextEventHeight = CophylogenyUtils
+                            .nextPoissonTime(normalizedDuplicationRate,
+                                             normalizedLossRate,
+                                             normalizedHostSwitchRate);
+                    
+                } else { // No host-switching possible
+                    
+                    nextEventHeight = CophylogenyUtils
+                            .nextPoissonTime(normalizedDuplicationRate,
+                                             normalizedLossRate);
+                    
+                }
+                
+                if (nextEventHeight <= nextCospeciationEventHeight)
+                    break;
+                
+                final int nextEventType;
+                if (state.getHostCount() > 1) {
+                    
+                    nextEventType = CophylogenyUtils
+                            .nextWeightedInteger(normalizedDuplicationRate,
+                                                 normalizedLossRate,
+                                                 normalizedHostSwitchRate);
+                    
+                } else { // No host-switching possible
+                    
+                    nextEventType = CophylogenyUtils
+                            .nextWeightedInteger(normalizedDuplicationRate,
+                                                 normalizedLossRate);
+                    
+                }
+                
+                final NodeRef affectedHost = state.getRandomWeightedHost();
+                
+                final CophylogeneticEvent nextEvent;
+                
+                switch(nextEventType) {
+                case 0:
+                    nextEvent = new DuplicationEvent(nextEventHeight,
+                                                     affectedHost);
+                    break;
+                case 1:
+                    nextEvent = new LossEvent(nextEventHeight, affectedHost);
+                    break;
+                case 2:
+                }
+                
+            }
+            
+            trajectory.applyNextCospeciationEvent();
+            
+        }
+        
     }
     
     protected static class DuplicationEvent extends BirthEvent {

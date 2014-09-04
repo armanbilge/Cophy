@@ -23,6 +23,7 @@ package cophy.simulation;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import cophy.CophylogenyUtils;
 import cophy.simulation.CophylogeneticEvent.CophylogeneticEventFailedException;
@@ -39,46 +40,64 @@ public class MutableCophylogeneticTrajectoryState
 
     protected final double originHeight;
     protected final Tree hostTree;
-    protected double currentHeight;
-    protected final Map<NodeRef,Integer> currentState;
+    protected double height;
+    protected final Map<NodeRef,Integer> state;
     
     public MutableCophylogeneticTrajectoryState(final double originHeight,
                                                 final Tree hostTree) {
         this.originHeight = originHeight;
         this.hostTree = hostTree;
         final int leafCount = hostTree.getExternalNodeCount();
-        currentState = new HashMap<NodeRef,Integer>(leafCount);
+        state = new HashMap<NodeRef,Integer>(leafCount);
     }
     
     public void reset() {
-        currentState.clear();
+        state.clear();
         setGuestCountAtHost(hostTree.getRoot(), 1);
-        currentHeight = originHeight;
+        height = originHeight;
     }
     
     public void applyEvent(final CophylogeneticEvent event)
             throws CophylogeneticEventFailedException {
         
-        currentHeight = event.getHeight();
-        if (currentHeight < 0)
+        height = event.getHeight();
+        if (height < 0)
             throw new CophylogeneticEventFailedException(event);
 
         event.apply(this);
         
         final int lineageCount = CophylogenyUtils
-                .getLineageCountAtHeight(hostTree, currentHeight);
-        if (lineageCount != currentState.size())
+                .getLineageCountAtHeight(hostTree, height);
+        if (lineageCount != state.size())
             throw new CophylogeneticEventFailedException(event);
         
     }
  
     @Override
     public int getGuestCountAtHost(final NodeRef host) {
-        return currentState.get(host);
+        return state.get(host);
+    }
+    
+    @Override
+    public int getHostCount() {
+        return state.size();
+    }
+    
+    @Override
+    public Set<NodeRef> getHosts() {
+        return state.keySet();
+    }
+    
+    @Override
+    public int getTotalGuestCount() {
+        int total = 0;
+        for (NodeRef node : state.keySet())
+            total += state.get(node);
+        return total;
     }
     
     public void setGuestCountAtHost(final NodeRef host, final int guestCount) {
-        currentState.put(host, guestCount);
+        state.put(host, guestCount);
     }
     
     public void incrementGuestCountAtHost(final NodeRef host) {
@@ -96,7 +115,7 @@ public class MutableCophylogeneticTrajectoryState
     }
     
     public void removeHost(final NodeRef host) {
-        currentState.remove(host);
+        state.remove(host);
     }
     
     public void addHost(final NodeRef host, final int guestCount) {
@@ -104,8 +123,13 @@ public class MutableCophylogeneticTrajectoryState
     }
     
     @Override
-    public double getCurrentHeight() {
-        return currentHeight;
+    public double getHeight() {
+        return height;
+    }
+ 
+    @Override
+    public NodeRef getRandomWeightedHost() {
+        return CophylogenyUtils.nextWeightedObject(state);
     }
     
 }
