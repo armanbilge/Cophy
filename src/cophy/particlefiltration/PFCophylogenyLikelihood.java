@@ -46,8 +46,8 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
     final int particleCount;
     
     public PFCophylogenyLikelihood(final CophylogenySimulator<?> simulator,
-                                 final Reconciliation reconciliation,
-                                 final int particleCount) {
+                                   final Reconciliation reconciliation,
+                                   final int particleCount) {
         
         super(simulator.getModel(), reconciliation);
         this.simulator = simulator;

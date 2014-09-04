@@ -1,5 +1,5 @@
 /**
- * CophylogenyLikelihood.java
+ * AbstractCophylogenyLikelihood.java
  * 
  * Cophy: Cophylogenetics for BEAST
  * 

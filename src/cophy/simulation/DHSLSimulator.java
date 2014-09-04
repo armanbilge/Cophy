@@ -25,6 +25,8 @@ import java.util.Set;
 
 import cophy.CophylogenyUtils;
 import cophy.model.DHSLModel;
+import cophy.simulation.CophylogeneticEvent.BirthEvent;
+import cophy.simulation.CophylogeneticEvent.DeathEvent;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.SimpleNode;
 import dr.evolution.tree.SimpleTree;
@@ -49,21 +51,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
         super(model, complete);
         
     }
-    
-    @Override
-    public Tree simulateTree() {
-        return simulateTree(0.0);
-    }
-    
-    @Override
-    public Tree simulateTree(final double until) {
-        
-        final NodeRef hostRoot = model.getHostTree().getRoot();
-        final double originHeight = model.getOriginHeight();
-        final SimpleNode root = simulateSubtree(hostRoot, originHeight, until);
-        return new SimpleTree(root);
-    }
-        
+            
     @Override
     protected SimpleNode simulateSubtree(final SimpleNode guestNode,
                                          final NodeRef hostNode,
@@ -165,7 +153,28 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
         return guestNode;
 
     }
+    
+    protected static class DuplicationEvent extends BirthEvent {
+        private static final String DUPLICATION_EVENT = "duplicationEvent";
+        public DuplicationEvent(final double height, final NodeRef node) {
+            super(DUPLICATION_EVENT, height, node);
+        }
+    }
 
+    protected static class HostSwitchEvent extends BirthEvent {
+        private static final String HOST_SWITCH_EVENT = "hostSwitchEvent";
+        public HostSwitchEvent(final double height, final NodeRef node) {
+            super(HOST_SWITCH_EVENT, height, node);
+        }
+    }
+    
+    protected static class LossEvent extends DeathEvent {
+        private static final String LOSS_EVENT = "lossEvent";
+        public LossEvent(final double height, final NodeRef node) {
+            super(LOSS_EVENT, height, node);
+        }
+    }
+    
     public static final AbstractXMLObjectParser PARSER =
             new AbstractXMLObjectParser() {
 

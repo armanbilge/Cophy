@@ -1,5 +1,5 @@
 /**
- * AbstractCophylogenyModel.java
+ * CophylogeneticTrajectoryState.java
  * 
  * Cophy: Cophylogenetics for BEAST
  * 
@@ -19,35 +19,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cophy.model;
+package cophy.simulation;
 
-import dr.evolution.tree.Tree;
-import dr.inference.model.AbstractModel;
-import dr.inference.model.Model;
+import dr.evolution.tree.NodeRef;
 
 /**
  * 
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public abstract class AbstractCophylogenyModel extends AbstractModel {
+public interface CophylogeneticTrajectoryState {
 
-    private static final long serialVersionUID = -2874567072654237379L;
-
-    protected final Tree hostTree;
+    public int getGuestCountAtHost(final NodeRef host);
     
-    public AbstractCophylogenyModel(final String name,
-                                    final Tree hostTree) {
-        super(name);
-        this.hostTree = hostTree;
-        if (hostTree instanceof Model)
-            addModel((Model) hostTree);
-    }
-
-    public Tree getHostTree() {
-        return hostTree;
-    }
-    
-    public abstract double getOriginHeight();
+    public double getCurrentHeight();
     
 }
