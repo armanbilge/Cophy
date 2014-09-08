@@ -21,6 +21,7 @@
 
 package cophy.simulation;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import cophy.CophylogenyUtils;
@@ -162,7 +163,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
             
             final double nextCospeciationEventHeight =
                     trajectory.getNextCospeciationEvent().getHeight();
-            while (true) {
+            while (state.getHeight() > until) {
                 
                 final int guestCount = state.getTotalGuestCount();
                 final double normalizedDuplicationRate =
@@ -212,15 +213,27 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
                 final CophylogeneticEvent nextEvent;
                 
                 switch(nextEventType) {
-                case 0:
+                case 0: // Duplication event
                     nextEvent = new DuplicationEvent(nextEventHeight,
                                                      affectedHost);
                     break;
-                case 1:
+                case 1: // Loss event
                     nextEvent = new LossEvent(nextEventHeight, affectedHost);
                     break;
-                case 2:
+                case 2: // Host-switch event
+                    final Set<NodeRef> potentialHosts =
+                            new HashSet<NodeRef>(state.getHosts());
+                    potentialHosts.remove(affectedHost);
+                    final NodeRef newHost =
+                            CophylogenyUtils.getRandomElement(potentialHosts);
+                    nextEvent = new HostSwitchEvent(nextEventHeight,
+                                                    affectedHost,
+                                                    newHost);
+                default: // Should not be needed
+                    throw new RuntimeException("Undefined event.");
                 }
+                
+                trajectory.addEvent(nextEvent);
                 
             }
             
@@ -230,17 +243,66 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
         
     }
     
+    @Override
+    public double simulateBirthEvent(final CophylogeneticTrajectory trajectory,
+                                     final double eventHeight,
+                                     final NodeRef source) {
+        
+        final CophylogeneticTrajectoryState state =
+                trajectory.getStateAtHeight(eventHeight);
+        
+        final int weight = state.getGuestCountAtHost(source);
+        
+        final int nextEventType;
+        if (state.getHostCount() > 1) {
+            
+            nextEventType = CophylogenyUtils
+                    .nextWeightedInteger(model.getDuplicationProportion(),
+                                         model.getHostSwitchProportion());
+            
+        } else { // No host-switching possible
+            
+            nextEventType = 0; // Has to be a duplication
+            
+        }
+                
+        final CophylogeneticEvent nextEvent;
+        
+        switch(nextEventType) {
+        case 0: // Duplication event
+            nextEvent = new DuplicationEvent(eventHeight, source);
+            break;
+        case 1: // Host-switch event
+            final Set<NodeRef> potentialHosts =
+                    new HashSet<NodeRef>(state.getHosts());
+            potentialHosts.remove(source);
+            final NodeRef newHost =
+                    CophylogenyUtils.getRandomElement(potentialHosts);
+            nextEvent = new HostSwitchEvent(eventHeight, source, newHost);
+        default: // Should not be needed
+            throw new RuntimeException("Undefined event.");
+        }
+        
+        trajectory.addEvent(nextEvent);
+        
+        return weight;
+        
+    }
+    
     protected static class DuplicationEvent extends BirthEvent {
         private static final String DUPLICATION_EVENT = "duplicationEvent";
-        public DuplicationEvent(final double height, final NodeRef node) {
-            super(DUPLICATION_EVENT, height, node);
+        public DuplicationEvent(final double height,
+                                final NodeRef node) {
+            super(DUPLICATION_EVENT, height, node, node);
         }
     }
 
     protected static class HostSwitchEvent extends BirthEvent {
         private static final String HOST_SWITCH_EVENT = "hostSwitchEvent";
-        public HostSwitchEvent(final double height, final NodeRef node) {
-            super(HOST_SWITCH_EVENT, height, node);
+        public HostSwitchEvent(final double height,
+                               final NodeRef source,
+                               final NodeRef destination) {
+            super(HOST_SWITCH_EVENT, height, source, destination);
         }
     }
     
@@ -297,4 +359,5 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
                 }
         
     };
+
 }

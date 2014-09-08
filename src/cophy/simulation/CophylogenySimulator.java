@@ -91,15 +91,18 @@ public abstract class CophylogenySimulator<T extends AbstractCophylogenyModel> {
                                                   double height,
                                                   final double until);
     
+    public CophylogeneticTrajectory createTrajectory() {
+        return new CophylogeneticTrajectory(model.getOriginHeight(),
+                                            model.getHostTree());
+    }
+    
     public CophylogeneticTrajectory simulateTrajectory() {
         return simulateTrajectory(0.0);
     }
     
     public CophylogeneticTrajectory simulateTrajectory(final double until) {
         
-        final CophylogeneticTrajectory trajectory =
-                new CophylogeneticTrajectory(model.getOriginHeight(),
-                                             model.getHostTree());
+        final CophylogeneticTrajectory trajectory = createTrajectory();
         resumeSimulation(trajectory, until);
         return trajectory;
     }
@@ -107,6 +110,11 @@ public abstract class CophylogenySimulator<T extends AbstractCophylogenyModel> {
     public abstract void
             resumeSimulation(final CophylogeneticTrajectory trajectory,
                              final double until);
+    
+    public abstract double
+            simulateBirthEvent(final CophylogeneticTrajectory trajectory,
+                               final double height,
+                               final NodeRef source);
     
     public T getModel() {
         return model;

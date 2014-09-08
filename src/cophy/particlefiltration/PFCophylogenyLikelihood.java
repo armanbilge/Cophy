@@ -21,10 +21,21 @@
 
 package cophy.particlefiltration;
 
+import java.util.LinkedList;
+import java.util.NavigableMap;
+import java.util.Queue;
+import java.util.TreeMap;
+
+import cophy.CophylogenyUtils;
 import cophy.model.AbstractCophylogenyLikelihood;
 import cophy.model.Reconciliation;
-import cophy.particlefiltration.Particle.TreeParticle;
+import cophy.particlefiltration.AbstractParticle.Particle;
+import cophy.simulation.CophylogeneticEvent;
+import cophy.simulation.CophylogeneticEvent.SpeciationEvent;
+import cophy.simulation.CophylogeneticTrajectory;
+import cophy.simulation.CophylogeneticTrajectoryState;
 import cophy.simulation.CophylogenySimulator;
+import dr.evolution.tree.NodeRef;
 import dr.xml.AbstractXMLObjectParser;
 import dr.xml.AttributeRule;
 import dr.xml.ElementRule;
@@ -42,25 +53,93 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
     private static final long serialVersionUID = -6527862383425163978L;
 
     final protected CophylogenySimulator<?> simulator;
-    final protected TreeParticle[] particles;
+    final protected Particle<CophylogeneticTrajectory>[] particles;
     final int particleCount;
     
+    @SuppressWarnings("unchecked")
     public PFCophylogenyLikelihood(final CophylogenySimulator<?> simulator,
                                    final Reconciliation reconciliation,
                                    final int particleCount) {
         
-        super(simulator.getModel(), reconciliation);
+        super(simulator.getModel(),
+              simulator.getModel().getHostTree(),
+              reconciliation);
         this.simulator = simulator;
-        this.particles = new TreeParticle[particleCount];
+        this.particles = new Particle[particleCount];
         this.particleCount = particleCount;
     }
 
     @Override
     protected double calculateLogLikelihood() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
+        
+        if (!isValid()) return Double.NEGATIVE_INFINITY;
+        
+        final NavigableMap<Double,NodeRef> heights2Nodes =
+                new TreeMap<Double,NodeRef>();
+        
+        for (int i = 0; i < guestTree.getInternalNodeCount(); ++i) {
+            final NodeRef node = guestTree.getNode(i);
+            final double height = guestTree.getNodeHeight(node);
+            heights2Nodes.put(height, node);
+        }
+        
+        for (int i = 0; i < particles.length; ++i) {
+            CophylogeneticTrajectory trajectory = simulator.createTrajectory();
+            particles[i] = new Particle<CophylogeneticTrajectory>(trajectory);
+        }
+        
+        final Queue<Double> speciationsQueue =
+                new LinkedList<Double>(heights2Nodes.descendingKeySet());
+        
+        double previousUntil = model.getOriginHeight();
+        double logLikelihood = 0.0;
+        while (!speciationsQueue.isEmpty()) {
+            final double until = speciationsQueue.poll();
+            
+            double totalWeight = 0.0;
+            
+            for(final Particle<CophylogeneticTrajectory> particle : particles) {
+                
+                final CophylogeneticTrajectory trajectory = particle.getValue();
+                simulator.resumeSimulation(trajectory, until);
 
+                // Rewind and replay
+                trajectory.getStateAtHeight(previousUntil);
+                while (trajectory.hasNextEvent()) {
+                    final CophylogeneticEvent event =
+                            trajectory.pollNextEvent();
+                    if (event.isSpeciation()) {
+                        final CophylogeneticTrajectoryState state =
+                                trajectory.getCurrentState();
+                        final double p = ((SpeciationEvent) event)
+                                .getProbabilityUnobserved(state,
+                                                          guestTree,
+                                                          reconciliation);
+                        particle.multiplyWeight(p);
+                        
+                    }
+                }
+                
+                final NodeRef speciatingNode = heights2Nodes.get(until);
+                final double p = simulator.simulateBirthEvent(trajectory,
+                                                              until,
+                                                              speciatingNode);
+                particle.multiplyWeight(p);
+                
+                totalWeight += particle.getWeight();
+                final double meanWeight = totalWeight / particles.length;
+                logLikelihood += Math.log(meanWeight);
+                
+            }
+            
+            CophylogenyUtils.resample(particles);
+            previousUntil = until;
+            
+        }
+        
+        return logLikelihood;
+    }
+    
     public static final AbstractXMLObjectParser PARSER =
             new AbstractXMLObjectParser() {
 

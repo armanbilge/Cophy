@@ -23,6 +23,7 @@ package cophy.simulation;
 
 import java.util.TreeMap;
 
+import cophy.particlefiltration.Copyable;
 import cophy.simulation.CophylogeneticEvent.CospeciationEvent;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
@@ -32,7 +33,7 @@ import dr.evolution.tree.Tree;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public class CophylogeneticTrajectory {
+public class CophylogeneticTrajectory implements Copyable {
 
     protected final Tree hostTree;
     protected final MutableCophylogeneticTrajectoryState state;
@@ -63,7 +64,6 @@ public class CophylogeneticTrajectory {
         
         state.reset();
         for (final double eventHeight : events.descendingKeySet()) {
-            // TODO decide between using < or <=
             if (eventHeight < height) break;
             state.applyEvent(events.get(eventHeight));
         }
@@ -79,6 +79,28 @@ public class CophylogeneticTrajectory {
 
     public void applyNextCospeciationEvent() {
         state.applyEvent(getNextCospeciationEvent());
+    }
+    
+    public CophylogeneticEvent peekNextEvent() {
+        return events.lowerEntry(state.getHeight()).getValue();
+    }
+
+    public CophylogeneticEvent pollNextEvent() {
+        final CophylogeneticEvent event = peekNextEvent();
+        state.applyEvent(event);
+        return event;
+    }
+        
+    public boolean hasNextEvent() {
+        return peekNextEvent() != null;
+    }
+    
+    @Override
+    public CophylogeneticTrajectory copy() {
+        final CophylogeneticTrajectory copy =
+                new CophylogeneticTrajectory(state.originHeight, hostTree);
+        copy.events.putAll(events);
+        return copy;
     }
     
 }

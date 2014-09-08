@@ -1,5 +1,5 @@
 /**
- * Particle.java
+ * AbstractParticle.java
  * 
  * Cophy: Cophylogenetics for BEAST
  * 
@@ -31,16 +31,16 @@ import dr.evolution.tree.Tree;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public class Particle<T> implements Cloneable {
+public abstract class AbstractParticle<T> implements Copyable {
 
     protected final T value;
     protected double weight;
         
-    public Particle(final T value) {
+    public AbstractParticle(final T value) {
         this(value, 1.0);
     }
     
-    public Particle(final T value, final double weight) {
+    public AbstractParticle(final T value, final double weight) {
         this.value = value;
         this.weight = weight;
     }
@@ -62,11 +62,28 @@ public class Particle<T> implements Cloneable {
     }
     
     @Override
-    public Particle<T> clone() {
-        return new Particle<T>(value, weight);
+    public abstract AbstractParticle<T> copy();
+    
+    public static class Particle<T extends Copyable>
+            extends AbstractParticle<T> {
+        
+        public Particle(final T value) {
+            super(value);
+        }
+        
+        public Particle(final T value, final double weight) {
+            super(value, weight);
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public Particle<T> copy() {
+            return new Particle<T>((T) value.copy(), weight);
+        }
+        
     }
     
-    public static class TreeParticle extends Particle<Tree> {
+    public static class TreeParticle extends AbstractParticle<Tree> {
         
         protected final Map<NodeRef,NodeRef> nodeMap;
         
@@ -88,10 +105,10 @@ public class Particle<T> implements Cloneable {
         }
         
         @Override
-        public TreeParticle clone() {
-            TreeParticle clone = (TreeParticle) super.clone();
-            clone.nodeMap.putAll(nodeMap);
-            return clone;
+        public TreeParticle copy() {
+            final TreeParticle copy = new TreeParticle(value.getCopy(), weight);
+            copy.nodeMap.putAll(nodeMap);
+            return copy;
         }
         
     }

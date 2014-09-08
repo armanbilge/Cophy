@@ -21,12 +21,14 @@
 
 package cophy;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import cophy.particlefiltration.Particle;
+import cophy.model.Reconciliation;
+import cophy.particlefiltration.AbstractParticle;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 import dr.math.MathUtils;
@@ -93,11 +95,25 @@ public final class CophylogenyUtils {
         
     }
 
+    public static final int
+            getGuestCountAtHostAtHeight(final Tree guestTree,
+                                        final Reconciliation reconciliation,
+                                        final NodeRef hostNode,
+                                        final double height) {
+        int count = 0;
+        final Set<NodeRef> guestNodes =
+                CophylogenyUtils.getLineagesAtHeight(guestTree, height);
+        for (final NodeRef guestNode : guestNodes) {
+            if (hostNode.equals(reconciliation.getHost(guestNode)))
+                ++count;
+        }
+        return count;
+    }
     
-    public static final <T> T getRandomElement(Set<T> set) {
+    public static final <T> T getRandomElement(Collection<T> collection) {
         int i = 0;
-        final int r = MathUtils.nextInt(set.size());
-        for (T element : set)
+        final int r = MathUtils.nextInt(collection.size());
+        for (T element : collection)
             if (i++ == r) return element;
         throw new RuntimeException();
     }
@@ -163,26 +179,23 @@ public final class CophylogenyUtils {
         return MathUtils.nextExponential(lambda);
     }
     
-    public static final <T> void resample(Particle<T>[] particles) {
+    public static final void resample(AbstractParticle<?>[] particles) {
         
-        final double[] weightsCDF = new double[particles.length - 1];
-        @SuppressWarnings("unchecked")
-        final Particle<T>[] particlesCopy = new Particle[particles.length];
-        
-        double sum = 0.0;
-        for (int i = 0; i < particles.length - 1; ++i) {
-            sum += particles[i].getWeight();
-            weightsCDF[i] = sum;
-            particlesCopy[i] = particles[i];
-        }
+        final double[] weights = new double[particles.length];
+        final AbstractParticle<?>[] particlesCopy = new AbstractParticle[particles.length];
         
         for (int i = 0; i < particles.length; ++i) {
-            final double U = 1 - MathUtils.nextDouble();        
-            int j;
-            for (j = 0; j < weightsCDF.length && weightsCDF[j] < U; ++j);
-            particles[i] = particlesCopy[j];
+            weights[i] = particles[i].getWeight();
+            particlesCopy[i] = particles[i];
         }
-                
+     
+        final RandomWeightedInteger rwi = new RandomWeightedInteger(weights);
+        for (int i = 0; i < particles.length; ++i) {
+            final int r = rwi.nextInt();
+            particles[i] = particlesCopy[r].copy();
+        }
+
+        
     }
 
     

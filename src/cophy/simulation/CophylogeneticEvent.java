@@ -21,8 +21,11 @@
 
 package cophy.simulation;
 
+import cophy.CophylogenyUtils;
+import cophy.model.Reconciliation;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
+import org.apache.commons.math.util.MathUtils;
 
 /**
  * 
@@ -48,10 +51,52 @@ public abstract class CophylogeneticEvent {
         return eventHeight;
     }
     
-    protected abstract void apply(final MutableCophylogeneticTrajectoryState state)
+    
+    public boolean isSpeciation() {
+        return false;
+    }
+    
+    protected abstract void
+            apply(final MutableCophylogeneticTrajectoryState state)
             throws CophylogeneticEventFailedException;
     
-    public static final class CospeciationEvent extends CophylogeneticEvent {
+    public static abstract class SpeciationEvent extends CophylogeneticEvent {
+
+        public SpeciationEvent(String eventName, double eventHeight) {
+            super(eventName, eventHeight);
+        }
+        
+        @Override
+        public final boolean isSpeciation() {
+            return true;
+        }
+        
+        public final double
+                getProbabilityUnobserved(final
+                                         CophylogeneticTrajectoryState state,
+                                         final Tree guestTree,
+                                         final Reconciliation reconciliation) {
+            
+            if (state.getHeight() != eventHeight)
+                throw new RuntimeException("State incompatible with event.");
+            
+            return calculateProbabilityUnobserved(state,
+                                                  guestTree,
+                                                  reconciliation);
+            
+        }
+        
+        protected abstract double
+                calculateProbabilityUnobserved(final
+                                               CophylogeneticTrajectoryState
+                                               state,
+                                               final Tree guestTree,
+                                               final
+                                               Reconciliation reconciliation);
+        
+    }
+    
+    public static class CospeciationEvent extends SpeciationEvent {
         
         private static final String COSPECIATION_EVENT = "cospeciationEvent";
         protected final Tree tree;
@@ -76,23 +121,104 @@ public abstract class CophylogeneticEvent {
             state.addHost(right, guestCount);
             
         }
+        
+        @Override
+        protected double
+                calculateProbabilityUnobserved(final
+                                               CophylogeneticTrajectoryState
+                                               state,
+                                               final Tree guestTree,
+                                               final
+                                               Reconciliation reconciliation) {
 
+            final int observedGuestCount = CophylogenyUtils
+                    .getGuestCountAtHostAtHeight(guestTree,
+                                                 reconciliation,
+                                                 node,
+                                                 eventHeight);
+            final int completeGuestCount = state.getGuestCountAtHost(node);
+            final long invalidCombinations =
+                    MathUtils.factorial(observedGuestCount);
+            final long totalCombinations =
+                    MathUtils.factorial(completeGuestCount);
+            
+            return (totalCombinations - invalidCombinations)
+                    / (double) totalCombinations;
+        }
+        
     }
     
-    public static abstract class BirthEvent extends CophylogeneticEvent {
+    public static abstract class BirthEvent extends SpeciationEvent {
 
-        final protected NodeRef node;
+        final protected NodeRef source;
+        final protected NodeRef destination;
         
         public BirthEvent(final String eventName,
                           final double eventHeight,
-                          final NodeRef node) {
+                          final NodeRef source,
+                          final NodeRef destination) {
             super(eventName, eventHeight);
-            this.node = node;
+            this.source = source;
+            this.destination = destination;
+        }
+        
+        public NodeRef getSource() {
+            return source;
+        }
+        
+        public NodeRef getDestination() {
+            return destination;
         }
         
         @Override
         public void apply(final MutableCophylogeneticTrajectoryState state) {
-            state.incrementGuestCountAtHost(node);
+            state.incrementGuestCountAtHost(destination);
+        }
+        
+        @Override
+        protected double
+                calculateProbabilityUnobserved(final
+                                               CophylogeneticTrajectoryState
+                                               state,
+                                               final Tree guestTree,
+                                               final
+                                               Reconciliation reconciliation) {
+
+            final int completeGuestCountSource =
+                    state.getGuestCountAtHost(source);
+            final int observedGuestCountSource = CophylogenyUtils
+                        .getGuestCountAtHostAtHeight(guestTree,
+                                                     reconciliation,
+                                                     source,
+                                                     eventHeight);
+            
+            final long totalCombinations;
+            final long invalidCombinations;
+            if (source.equals(destination)) {
+                totalCombinations =
+                        MathUtils.binomialCoefficient(completeGuestCountSource,
+                                                      2);
+                invalidCombinations =
+                        MathUtils.binomialCoefficient(observedGuestCountSource,
+                                                      2);
+            } else {
+                final int completeGuestCountDestination =
+                        state.getGuestCountAtHost(destination);
+                final int observedGuestCountDestination = CophylogenyUtils
+                        .getGuestCountAtHostAtHeight(guestTree,
+                                                     reconciliation,
+                                                     destination,
+                                                     eventHeight);
+                
+                totalCombinations = completeGuestCountSource
+                        * completeGuestCountDestination;
+                invalidCombinations = observedGuestCountSource
+                        * observedGuestCountDestination;
+
+            }
+            
+            return (totalCombinations - invalidCombinations)
+                    / (double) totalCombinations;
         }
         
     }
