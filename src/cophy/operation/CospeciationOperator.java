@@ -1,20 +1,20 @@
 /**
  * CospeciationOperator.java
- * 
+ *
  * Cophy: Cophylogenetics for BEAST
- * 
+ *
  * Copyright (C) 2014 Arman D. Bilge <armanbilge@gmail.com>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -44,7 +44,7 @@ public class CospeciationOperator extends SimpleMCMCOperator {
     protected final Tree hostTree;
     protected final Reconciliation reconciliation;
     protected final Parameter originHeightParameter;
-    
+
     public CospeciationOperator(final MutableTree guestTree,
                                 final Tree hostTree,
                                 final Reconciliation reconciliation,
@@ -56,7 +56,7 @@ public class CospeciationOperator extends SimpleMCMCOperator {
         this.originHeightParameter = originHeightParameter;
         setWeight(weight);
     }
-    
+
     @Override
     public String getPerformanceSuggestion() {
         return "No performance suggestion.";
@@ -71,21 +71,21 @@ public class CospeciationOperator extends SimpleMCMCOperator {
     public double doOperation() throws OperatorFailedException {
 
         final double originHeight = originHeightParameter.getValue(0);
-        
+
         final int r = MathUtils.nextInt(guestTree.getInternalNodeCount());
         final NodeRef guestNode = guestTree.getInternalNode(r);
         final NodeRef hostNode = reconciliation.getHost(guestNode);
         if (hostTree.isExternal(hostNode))
             throw new OperatorFailedException("No change in state.");
         final double hostHeight = hostTree.getNodeHeight(hostNode);
-        
+
         final double leftChildHeight = guestTree.getNodeHeight(
                 guestTree.getChild(guestNode, 0));
         final double rightChildHeight = guestTree.getNodeHeight(
                 guestTree.getChild(guestNode, 1));
         if (hostHeight <= Math.max(leftChildHeight, rightChildHeight))
             throw new OperatorFailedException("No change in state.");
-        
+
         final double upperHeightEmbedded = guestTree.isRoot(guestNode)
                 ? originHeight :
                     guestTree.getNodeHeight(guestTree.getParent(guestNode));
@@ -104,7 +104,7 @@ public class CospeciationOperator extends SimpleMCMCOperator {
         } else {
             newHeight = hostHeight;
         }
-        
+
         guestTree.setNodeHeight(guestNode, newHeight);
         return logHastingsRatio;
 
@@ -115,7 +115,7 @@ public class CospeciationOperator extends SimpleMCMCOperator {
 
                 private static final String GUEST = "guest";
                 private static final String HOST = "host";
-        
+
                 @Override
                 public String getParserName() {
                     return COSPECIATION_OPERATOR;
@@ -124,7 +124,7 @@ public class CospeciationOperator extends SimpleMCMCOperator {
                 @Override
                 public Object parseXMLObject(final XMLObject xo)
                         throws XMLParseException {
-                    
+
                     final MutableTree guestTree =
                             (MutableTree) xo.getChild(GUEST)
                             .getChild(MutableTree.class);
@@ -135,7 +135,7 @@ public class CospeciationOperator extends SimpleMCMCOperator {
                     final Parameter originHeightParameter =
                             (Parameter) xo.getChild(Parameter.class);
                     final double weight = xo.getDoubleAttribute(WEIGHT);
-                    
+
                     return new CospeciationOperator(guestTree,
                                                     hostTree,
                                                     reconciliation,
@@ -166,7 +166,7 @@ public class CospeciationOperator extends SimpleMCMCOperator {
                 public Class<CospeciationOperator> getReturnType() {
                     return CospeciationOperator.class;
                 }
-        
+
     };
-    
+
 }

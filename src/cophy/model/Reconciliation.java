@@ -1,20 +1,20 @@
 /**
  * Reconciliation.java
- * 
+ *
  * Cophy: Cophylogenetics for BEAST
- * 
+ *
  * Copyright (C) 2014 Arman D. Bilge <armanbilge@gmail.com>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -34,25 +34,25 @@ import dr.xml.XMLParseException;
 import dr.xml.XMLSyntaxRule;
 
 /**
- * 
+ *
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
 public class Reconciliation extends AbstractModel {
 
     private static final long serialVersionUID = -8575817366502931528L;
-    
+
     public static final String RECONCILIATION = "reconciliation";
-    
+
     protected final Tree guestTree;
     protected final Tree hostTree;
     protected final boolean[] sampleable;
     protected int[] map;
     protected int[] storedMap;
-    
+
     public Reconciliation(final Tree guestTree,
                           final Tree hostTree) {
-        
+
         super(RECONCILIATION);
         this.guestTree = guestTree;
         if (guestTree instanceof Model)
@@ -64,13 +64,13 @@ public class Reconciliation extends AbstractModel {
         sampleable = new boolean[guestTree.getNodeCount()];
         for (int i = 0; i < sampleable.length; ++i)
             sampleable[i] = !guestTree.isExternal(guestTree.getNode(i));
-                
+
     }
-    
+
     public NodeRef getHost(final NodeRef guest) {
         return hostTree.getNode(map[guest.getNumber()]);
     }
-    
+
     public void setHost(final NodeRef guest, final NodeRef host) {
         if (!sampleable[guest.getNumber()])
             throw new RuntimeException("Cannot set host for node "
@@ -110,13 +110,13 @@ public class Reconciliation extends AbstractModel {
     protected void acceptState() {
         // Nothing to do
     }
-    
+
     public static final AbstractXMLObjectParser PARSER =
             new AbstractXMLObjectParser() {
 
                 private static final String GUEST = "guest";
                 private static final String HOST = "host";
-        
+
                 @Override
                 public String getParserName() {
                     return RECONCILIATION;
@@ -125,16 +125,16 @@ public class Reconciliation extends AbstractModel {
                 @Override
                 public Object parseXMLObject(final XMLObject xo)
                         throws XMLParseException {
-                    
+
                     final Tree guestTree =
                             (Tree) xo.getChild(GUEST).getChild(Tree.class);
                     final Tree hostTree =
                             (Tree) xo.getChild(HOST).getChild(Tree.class);
-                    
+
                     return new Reconciliation(guestTree, hostTree);
                 }
 
-                
+
                 private final XMLSyntaxRule[] rules = {
                         new ElementRule(GUEST, new XMLSyntaxRule[]{
                                 new ElementRule(Tree.class)}),
@@ -155,7 +155,7 @@ public class Reconciliation extends AbstractModel {
                 public Class<Reconciliation> getReturnType() {
                     return Reconciliation.class;
                 }
-        
+
     };
-    
+
 }

@@ -1,20 +1,20 @@
 /**
  * DHSLModel.java
- * 
+ *
  * Cophy: Cophylogenetics for BEAST
- * 
+ *
  * Copyright (C) 2014 Arman D. Bilge <armanbilge@gmail.com>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -34,7 +34,7 @@ import dr.xml.XMLParseException;
 import dr.xml.XMLSyntaxRule;
 
 /**
- * 
+ *
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
@@ -43,7 +43,7 @@ public class DHSLModel extends AbstractCophylogenyModel {
     private static final long serialVersionUID = 2041282129285374772L;
 
     private static final String DHSL_MODEL = "DHSLModel";
-    
+
     protected final Parameter birthDiffRateParameter;
     protected final Parameter relativeDeathRateParameter;
     protected final Parameter hostSwitchProportionParameter;
@@ -54,18 +54,18 @@ public class DHSLModel extends AbstractCophylogenyModel {
                      final Parameter relativeDeathRateParameter,
                      final Parameter hostSwitchProportionParameter,
                      final Parameter originHeightParameter) {
-        
+
         super(DHSL_MODEL, hostTree);
-        
+
         this.birthDiffRateParameter = birthDiffRateParameter;
         addVariable(birthDiffRateParameter);
-        
+
         this.relativeDeathRateParameter = relativeDeathRateParameter;
         addVariable(relativeDeathRateParameter);
-        
+
         this.hostSwitchProportionParameter = hostSwitchProportionParameter;
         addVariable(hostSwitchProportionParameter);
-        
+
         this.originHeightParameter = originHeightParameter;
         addVariable(originHeightParameter);
     }
@@ -85,35 +85,35 @@ public class DHSLModel extends AbstractCophylogenyModel {
     public double getDuplicationProportion() {
         return 1 - getHostSwitchProportion();
     }
-    
+
     public double getHostSwitchProportion() {
         return hostSwitchProportionParameter.getValue(0);
     }
-    
+
     public double getBirthRate() {
         return getBirthDiffRate() / (1 - getRelativeDeathRate());
     }
-    
+
     public double getDeathRate() {
         return getBirthRate() - getBirthDiffRate();
     }
-    
+
     public double getDuplicationRate() {
         return getBirthRate() * getDuplicationProportion();
     }
-        
+
     public double getHostSwitchRate() {
         return getBirthRate() * getHostSwitchProportion();
     }
-    
+
     public double getLossRate() {
         return getDeathRate();
     }
-    
+
     public double getOriginHeight() {
         return originHeightParameter.getValue(0);
     }
-    
+
     @Override
     protected void handleModelChangedEvent(final Model model,
                                            final Object object,
@@ -143,7 +143,7 @@ public class DHSLModel extends AbstractCophylogenyModel {
     protected void acceptState() {
         // Nothing to do
     }
-    
+
     public static final AbstractXMLObjectParser PARSER =
             new AbstractXMLObjectParser() {
 
@@ -156,7 +156,7 @@ public class DHSLModel extends AbstractCophylogenyModel {
                 private static final String ORIGIN_HEIGHT = "originHeight";
                 private static final String COMPLETE_HISTORY =
                         "completeHistory";
-                
+
                 @Override
                 public String getParserName() {
                     return DHSL_MODEL;
@@ -165,7 +165,7 @@ public class DHSLModel extends AbstractCophylogenyModel {
                 @Override
                 public Object parseXMLObject(final XMLObject xo)
                         throws XMLParseException {
-                    
+
                     final Tree hostTree = (Tree) xo.getChild(Tree.class);
                     final Parameter birthDiffRateParameter =
                             (Parameter) xo.getChild(BIRTH_DIFF_RATE)
@@ -179,13 +179,13 @@ public class DHSLModel extends AbstractCophylogenyModel {
                     final Parameter originHeightParameter =
                             (Parameter) xo.getChild(ORIGIN_HEIGHT)
                             .getChild(Parameter.class);
-                    
+
                     return new DHSLModel(hostTree,
                                          birthDiffRateParameter,
                                          relativeDeathRateParameter,
                                          hostSwitchProportionParameter,
                                          originHeightParameter);
-                    
+
                 }
 
                 private final XMLSyntaxRule[] rules = {
@@ -217,5 +217,5 @@ public class DHSLModel extends AbstractCophylogenyModel {
                     return DHSLModel.class;
                 }
     };
-    
+
 }
