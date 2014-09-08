@@ -94,6 +94,30 @@ public abstract class CophylogeneticEvent {
                                                final
                                                Reconciliation reconciliation);
         
+        public final double
+                getProbabilityObserved(final
+                                       CophylogeneticTrajectoryState state,
+                                       final Tree guestTree,
+                                       final Reconciliation reconciliation) {
+    
+            if (state.getHeight() != eventHeight)
+                throw new RuntimeException("State incompatible with event.");
+    
+            return calculateProbabilityObserved(state,
+                                                guestTree,
+                                                reconciliation);
+    
+}
+
+        protected abstract double
+                calculateProbabilityObserved(final
+                                             CophylogeneticTrajectoryState
+                                             state,
+                                             final Tree guestTree,
+                                             final
+                                             Reconciliation reconciliation);
+
+        
     }
     
     public static class CospeciationEvent extends SpeciationEvent {
@@ -146,6 +170,22 @@ public abstract class CophylogeneticEvent {
                     / (double) totalCombinations;
         }
         
+        @Override
+        protected double
+                calculateProbabilityObserved(final
+                                             CophylogeneticTrajectoryState
+                                             state,
+                                             final Tree guestTree,
+                                             final
+                                             Reconciliation reconciliation) {
+
+            final int completeGuestCount = state.getGuestCountAtHost(node);
+            final long totalCombinations =
+                    MathUtils.factorial(completeGuestCount);
+            
+            return 1.0 / totalCombinations;
+        }
+
     }
     
     public static abstract class BirthEvent extends SpeciationEvent {
@@ -220,6 +260,36 @@ public abstract class CophylogeneticEvent {
             return (totalCombinations - invalidCombinations)
                     / (double) totalCombinations;
         }
+     
+        @Override
+        protected double
+                calculateProbabilityObserved(final
+                                             CophylogeneticTrajectoryState
+                                             state,
+                                             final Tree guestTree,
+                                             final
+                                             Reconciliation reconciliation) {
+
+            final int completeGuestCountSource =
+                    state.getGuestCountAtHost(source);
+            
+            final long totalCombinations;
+            if (source.equals(destination)) {
+                totalCombinations =
+                        MathUtils.binomialCoefficient(completeGuestCountSource,
+                                                      2);
+            } else {
+                final int completeGuestCountDestination =
+                        state.getGuestCountAtHost(destination);
+                
+                totalCombinations = completeGuestCountSource
+                        * completeGuestCountDestination;
+
+            }
+            
+            return 1.0 / totalCombinations;
+        }
+
         
     }
 

@@ -90,7 +90,11 @@ public class CophylogeneticTrajectory implements Copyable {
         state.applyEvent(event);
         return event;
     }
-        
+    
+    public CophylogeneticEvent getLastEvent() {
+        return events.get(state.getHeight());
+    }
+    
     public boolean hasNextEvent() {
         return peekNextEvent() != null;
     }

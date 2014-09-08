@@ -121,9 +121,18 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
                 }
                 
                 final NodeRef speciatingNode = heights2Nodes.get(until);
-                final double p = simulator.simulateBirthEvent(trajectory,
-                                                              until,
-                                                              speciatingNode);
+                double p = simulator.simulateSpeciationEvent(trajectory,
+                                                             until,
+                                                             speciatingNode);
+                particle.multiplyWeight(p);
+                
+                final SpeciationEvent event =
+                        (SpeciationEvent) trajectory.getLastEvent();
+                final CophylogeneticTrajectoryState state =
+                        trajectory.getCurrentState();
+                p = event.getProbabilityObserved(state,
+                                                 guestTree,
+                                                 reconciliation);
                 particle.multiplyWeight(p);
                 
                 totalWeight += particle.getWeight();

@@ -22,6 +22,7 @@
 package cophy.simulation;
 
 import cophy.model.AbstractCophylogenyModel;
+import cophy.simulation.CophylogeneticEvent.CospeciationEvent;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.SimpleNode;
 import dr.evolution.tree.SimpleTree;
@@ -111,7 +112,35 @@ public abstract class CophylogenySimulator<T extends AbstractCophylogenyModel> {
             resumeSimulation(final CophylogeneticTrajectory trajectory,
                              final double until);
     
-    public abstract double
+    public double
+            simulateSpeciationEvent(final CophylogeneticTrajectory trajectory,
+                                    final double height,
+                                    final NodeRef source) {
+        
+        final Tree hostTree = model.getHostTree();
+        if (hostTree.getNodeHeight(source) == height) // Cospeciation event
+            return simulateCospeciationEvent(trajectory, height, source);
+        else // Birth event
+            return simulateBirthEvent(trajectory, height, source);
+        
+    }
+    
+    protected double
+            simulateCospeciationEvent(final CophylogeneticTrajectory trajectory,
+                                      final double height,
+                                      final NodeRef source) {
+        
+        final CospeciationEvent event =
+                new CospeciationEvent(model.getHostTree(),
+                                      source,
+                                      height);
+        trajectory.addEvent(event);
+        
+        return 1.0; // Cospeciation events are always guaranteed
+                    // i.e. occur with equal weight
+    }
+    
+    protected abstract double
             simulateBirthEvent(final CophylogeneticTrajectory trajectory,
                                final double height,
                                final NodeRef source);
