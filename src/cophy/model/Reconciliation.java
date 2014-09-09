@@ -57,6 +57,7 @@ public class Reconciliation extends AbstractModel implements TreeTraitProvider {
     protected final Tree guestTree;
     protected final Tree hostTree;
     protected final String hostTraitName;
+    protected boolean initialized = false;
     protected final boolean[] sampleable;
     protected int[] map;
     protected int[] storedMap;
@@ -87,8 +88,6 @@ public class Reconciliation extends AbstractModel implements TreeTraitProvider {
         storedMap = new int[guestTree.getNodeCount()];
 
         sampleable = new boolean[guestTree.getNodeCount()];
-        for (int i = 0; i < sampleable.length; ++i)
-            sampleable[i] = !guestTree.isExternal(guestTree.getNode(i));
 
         final NodeRefTrait trait = new NodeRefTrait(hostTraitName) {
             @Override
@@ -145,6 +144,11 @@ public class Reconciliation extends AbstractModel implements TreeTraitProvider {
             setHost(guestNode, hostNode);
         }
 
+        for (int i = 0; i < sampleable.length; ++i)
+            sampleable[i] = !guestTree.isExternal(guestTree.getNode(i));
+
+        initialized = true;
+
     }
 
     public NodeRef getHost(final NodeRef guest) {
@@ -152,7 +156,7 @@ public class Reconciliation extends AbstractModel implements TreeTraitProvider {
     }
 
     public void setHost(final NodeRef guest, final NodeRef host) {
-        if (!sampleable[guest.getNumber()])
+        if (initialized && !sampleable[guest.getNumber()])
             throw new RuntimeException("Cannot set host for node "
                                        + guest + ".");
         map[guest.getNumber()] = host.getNumber();
