@@ -96,7 +96,7 @@ public class CophylogeneticTrajectory implements Copyable {
     }
 
     public boolean hasNextEvent() {
-        return peekNextEvent() != null;
+        return events.lowerKey(state.getHeight()) != null;
     }
 
     @Override
