@@ -62,6 +62,15 @@ public abstract class AbstractCophylogenyLikelihood
 
     protected boolean isValid() {
 
+        final double guestRootHeight =
+                guestTree.getNodeHeight(guestTree.getRoot());
+        final double hostRootHeight =
+                hostTree.getNodeHeight(hostTree.getRoot());
+        final double originHeight = model.getOriginHeight();
+
+        if (guestRootHeight >= originHeight || hostRootHeight >= originHeight)
+            return false;
+
         for (int i = 0; i < guestTree.getNodeCount(); ++i) {
             final NodeRef guestNode = guestTree.getNode(i);
             final NodeRef hostNode = reconciliation.getHost(guestNode);
