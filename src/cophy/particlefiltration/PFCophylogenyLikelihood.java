@@ -78,7 +78,7 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
                 new TreeMap<Double,NodeRef>();
 
         for (int i = 0; i < guestTree.getInternalNodeCount(); ++i) {
-            final NodeRef node = guestTree.getNode(i);
+            final NodeRef node = guestTree.getInternalNode(i);
             final double height = guestTree.getNodeHeight(node);
             heights2Nodes.put(height, node);
         }

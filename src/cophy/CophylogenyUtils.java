@@ -120,24 +120,24 @@ public final class CophylogenyUtils {
 
     public static class RandomWeightedObject<T> {
 
-        final LinkedHashMap<T,Double> weights;
+        final LinkedHashMap<T,Double> weightsCDF;
         final double sum;
 
         public RandomWeightedObject(Map<T,? extends Number> weights) {
             double sum = 0.0;
-            this.weights = new LinkedHashMap<T,Double>(weights.size());
+            this.weightsCDF = new LinkedHashMap<T,Double>(weights.size());
             for (T key : weights.keySet()) {
                 final double weight = weights.get(key).doubleValue();
-                this.weights.put(key, weight);
                 sum += weight;
+                this.weightsCDF.put(key, sum);
             }
             this.sum = sum;
         }
 
         public final T nextObject() {
             final double r = (1 - MathUtils.nextDouble()) * sum;
-            for (T key : weights.keySet()) {
-                if (weights.get(key) >= r)
+            for (T key : weightsCDF.keySet()) {
+                if (weightsCDF.get(key) >= r)
                     return key;
             }
             throw new RuntimeException();
@@ -153,18 +153,23 @@ public final class CophylogenyUtils {
 
     public static final class RandomWeightedInteger {
 
-        final double[] weights;
+        final double[] weightsCDF;
         final double sum;
 
         public RandomWeightedInteger(final double...weights) {
-            this.weights = weights;
-            sum = MathUtils.getTotal(weights);
+            double sum = 0.0;
+            weightsCDF = new double[weights.length];
+            for (int i = 0; i < weights.length; ++i) {
+                sum += weights[i];
+                weightsCDF[i] = sum;
+            }
+            this.sum = sum;
         }
 
         public final int nextInt() {
             final double r = (1 - MathUtils.nextDouble()) * sum;
             int i;
-            for (i = 0; i < weights.length && weights[i] < r; ++i);
+            for (i = 0; i < weightsCDF.length && weightsCDF[i] < r; ++i);
             return i;
         }
 
