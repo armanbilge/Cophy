@@ -58,7 +58,10 @@ public abstract class AbstractCophylogenyLikelihood
         reconciliation.addModelListener(this);
     }
 
-
+    @Override
+    public boolean evaluateEarly() {
+        return true;
+    }
 
     protected boolean isValid() {
 
