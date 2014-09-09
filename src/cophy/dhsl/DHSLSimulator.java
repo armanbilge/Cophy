@@ -26,11 +26,12 @@ import java.util.Set;
 
 import cophy.CophylogenyUtils;
 import cophy.simulation.CophylogeneticEvent;
+import cophy.simulation.CophylogeneticEvent.BirthEvent;
+import cophy.simulation.CophylogeneticEvent.CospeciationEvent;
+import cophy.simulation.CophylogeneticEvent.DeathEvent;
 import cophy.simulation.CophylogeneticTrajectory;
 import cophy.simulation.CophylogeneticTrajectoryState;
 import cophy.simulation.CophylogenySimulator;
-import cophy.simulation.CophylogeneticEvent.BirthEvent;
-import cophy.simulation.CophylogeneticEvent.DeathEvent;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.SimpleNode;
 import dr.evolution.tree.Tree;
@@ -165,8 +166,14 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
                 trajectory.getCurrentState();
         while (state.getHeight() > until) {
 
-            final double nextCospeciationEventHeight =
-                    trajectory.getNextCospeciationEvent().getHeight();
+            final CospeciationEvent nextCospeciationEvent =
+                    trajectory.getNextCospeciationEvent();
+            final double nextCospeciationEventHeight;
+            if (nextCospeciationEvent != null)
+                nextCospeciationEventHeight = nextCospeciationEvent.getHeight();
+            else
+                nextCospeciationEventHeight = 0.0;
+
             while (state.getHeight() > until) {
 
                 final int guestCount = state.getTotalGuestCount();
@@ -241,7 +248,8 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
             }
 
-            trajectory.applyNextCospeciationEvent();
+            if (nextCospeciationEventHeight > 0.0)
+                trajectory.applyNextCospeciationEvent();
 
         }
 

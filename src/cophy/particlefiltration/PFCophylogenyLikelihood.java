@@ -84,7 +84,8 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
         }
 
         for (int i = 0; i < particles.length; ++i) {
-            CophylogeneticTrajectory trajectory = simulator.createTrajectory();
+            final CophylogeneticTrajectory trajectory =
+                    simulator.createTrajectory();
             particles[i] = new Particle<CophylogeneticTrajectory>(trajectory);
         }
 
@@ -139,10 +140,11 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
                 particle.multiplyWeight(p);
 
                 totalWeight += particle.getWeight();
-                final double meanWeight = totalWeight / particles.length;
-                logLikelihood += Math.log(meanWeight);
 
             }
+
+            final double meanWeight = totalWeight / particles.length;
+            logLikelihood += Math.log(meanWeight);
 
             CophylogenyUtils.resample(particles);
             previousUntil = until;

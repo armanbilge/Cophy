@@ -21,6 +21,7 @@
 
 package cophy.simulation;
 
+import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import cophy.particlefiltration.Copyable;
@@ -73,12 +74,21 @@ public class CophylogeneticTrajectory implements Copyable {
     }
 
     public CospeciationEvent getNextCospeciationEvent() {
-        final double height = state.getHeight();
-        return (CospeciationEvent) events.lowerEntry(height).getValue();
+        double height = state.getHeight();
+        Entry<Double,CophylogeneticEvent> entry = events.lowerEntry(height);
+        while (entry != null) {
+            if (entry.getValue() instanceof CospeciationEvent)
+                return (CospeciationEvent) entry.getValue();
+            height = entry.getKey();
+            entry = events.lowerEntry(height);
+        }
+        return null;
     }
 
     public void applyNextCospeciationEvent() {
-        state.applyEvent(getNextCospeciationEvent());
+        final CospeciationEvent event = getNextCospeciationEvent();
+        if (event == null) throw new RuntimeException("No more cospeciations.");
+        state.applyEvent(event);
     }
 
     public CophylogeneticEvent peekNextEvent() {

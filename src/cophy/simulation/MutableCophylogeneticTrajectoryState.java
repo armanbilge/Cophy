@@ -49,6 +49,7 @@ public class MutableCophylogeneticTrajectoryState
         this.hostTree = hostTree;
         final int leafCount = hostTree.getExternalNodeCount();
         state = new HashMap<NodeRef,Integer>(leafCount);
+        reset();
     }
 
     public void reset() {
