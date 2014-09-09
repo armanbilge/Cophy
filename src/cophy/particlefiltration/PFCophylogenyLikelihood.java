@@ -36,6 +36,7 @@ import cophy.simulation.CophylogeneticTrajectory;
 import cophy.simulation.CophylogeneticTrajectoryState;
 import cophy.simulation.CophylogenySimulator;
 import dr.evolution.tree.NodeRef;
+import dr.evolution.tree.Tree;
 import dr.xml.AbstractXMLObjectParser;
 import dr.xml.AttributeRule;
 import dr.xml.ElementRule;
@@ -58,12 +59,11 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
 
     @SuppressWarnings("unchecked")
     public PFCophylogenyLikelihood(final CophylogenySimulator<?> simulator,
+                                   final Tree guestTree,
                                    final Reconciliation reconciliation,
                                    final int particleCount) {
 
-        super(simulator.getModel(),
-              simulator.getModel().getHostTree(),
-              reconciliation);
+        super(simulator.getModel(), guestTree, reconciliation);
         this.simulator = simulator;
         this.particles = new Particle[particleCount];
         this.particleCount = particleCount;
@@ -168,18 +168,21 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
                     final CophylogenySimulator<?> simulator =
                             (CophylogenySimulator<?>) xo
                             .getChild(CophylogenySimulator.class);
+                    final Tree guestTree = (Tree) xo.getChild(Tree.class);
                     final Reconciliation reconciliation =
                             (Reconciliation) xo.getChild(Reconciliation.class);
                     final int particleCount =
                             xo.getIntegerAttribute(PARTICLE_COUNT);
 
                     return new PFCophylogenyLikelihood(simulator,
-                                                     reconciliation,
-                                                     particleCount);
+                                                       guestTree,
+                                                       reconciliation,
+                                                       particleCount);
                 }
 
                 private final XMLSyntaxRule[] rules = {
                         new ElementRule(CophylogenySimulator.class),
+                        new ElementRule(Tree.class),
                         new ElementRule(Reconciliation.class),
                         AttributeRule.newIntegerRule(PARTICLE_COUNT)
                 };

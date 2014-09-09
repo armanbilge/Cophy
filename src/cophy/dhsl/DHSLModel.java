@@ -19,15 +19,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cophy.model;
+package cophy.dhsl;
 
+import cophy.model.AbstractCophylogenyModel;
 import dr.evolution.tree.Tree;
 import dr.inference.model.Model;
 import dr.inference.model.Parameter;
 import dr.inference.model.Variable;
 import dr.inference.model.Variable.ChangeType;
 import dr.xml.AbstractXMLObjectParser;
-import dr.xml.AttributeRule;
 import dr.xml.ElementRule;
 import dr.xml.XMLObject;
 import dr.xml.XMLParseException;
@@ -42,7 +42,7 @@ public class DHSLModel extends AbstractCophylogenyModel {
 
     private static final long serialVersionUID = 2041282129285374772L;
 
-    private static final String DHSL_MODEL = "DHSLModel";
+    private static final String DHSL_MODEL = "dhslModel";
 
     protected final Parameter birthDiffRateParameter;
     protected final Parameter relativeDeathRateParameter;
@@ -70,6 +70,7 @@ public class DHSLModel extends AbstractCophylogenyModel {
         addVariable(originHeightParameter);
     }
 
+    @Override
     public Tree getHostTree() {
         return hostTree;
     }
@@ -110,6 +111,7 @@ public class DHSLModel extends AbstractCophylogenyModel {
         return getDeathRate();
     }
 
+    @Override
     public double getOriginHeight() {
         return originHeightParameter.getValue(0);
     }
@@ -154,8 +156,6 @@ public class DHSLModel extends AbstractCophylogenyModel {
                 private static final String HOST_SWITCH_PROPORTION =
                         "hostSwitchProportion";
                 private static final String ORIGIN_HEIGHT = "originHeight";
-                private static final String COMPLETE_HISTORY =
-                        "completeHistory";
 
                 @Override
                 public String getParserName() {
@@ -199,7 +199,6 @@ public class DHSLModel extends AbstractCophylogenyModel {
                                         Parameter.class)}),
                         new ElementRule(ORIGIN_HEIGHT, new XMLSyntaxRule[]{
                                 new ElementRule(Parameter.class)}),
-                        AttributeRule.newBooleanRule(COMPLETE_HISTORY)
                 };
                 @Override
                 public XMLSyntaxRule[] getSyntaxRules() {
@@ -208,8 +207,8 @@ public class DHSLModel extends AbstractCophylogenyModel {
 
                 @Override
                 public String getParserDescription() {
-                    return "The duplication, host-switch, loss cophylogeny" +
-                            " model.";
+                    return "The duplication, host-switch, loss cophylogeny"
+                            + " model.";
                 }
 
                 @Override

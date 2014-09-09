@@ -24,12 +24,12 @@ package cophy;
 import java.util.HashSet;
 import java.util.Set;
 
-import cophy.model.DHSLModel;
+import cophy.dhsl.DHSLModel;
+import cophy.dhsl.DHSLSimulator;
 import cophy.model.Reconciliation;
 import cophy.operation.CospeciationOperator;
 import cophy.operation.HostSwitchOperator;
 import cophy.operation.LeafHostSwitchOperator;
-import cophy.simulation.DHSLSimulator;
 import dr.app.plugin.Plugin;
 import dr.xml.XMLObjectParser;
 

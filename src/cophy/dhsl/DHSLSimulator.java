@@ -19,13 +19,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cophy.simulation;
+package cophy.dhsl;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import cophy.CophylogenyUtils;
-import cophy.model.DHSLModel;
+import cophy.simulation.CophylogeneticEvent;
+import cophy.simulation.CophylogeneticTrajectory;
+import cophy.simulation.CophylogeneticTrajectoryState;
+import cophy.simulation.CophylogenySimulator;
 import cophy.simulation.CophylogeneticEvent.BirthEvent;
 import cophy.simulation.CophylogeneticEvent.DeathEvent;
 import dr.evolution.tree.NodeRef;
@@ -154,6 +157,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
     }
 
+    @Override
     public void resumeSimulation(final CophylogeneticTrajectory trajectory,
                                  final double until) {
 
@@ -316,7 +320,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
     public static final AbstractXMLObjectParser PARSER =
             new AbstractXMLObjectParser() {
 
-                private static final String DHSL_SIMULATOR = "DHSLSimulator";
+                private static final String DHSL_SIMULATOR = "dhslSimulator";
                 private static final String COMPLETE_HISTORY =
                         "completeHistory";
 
