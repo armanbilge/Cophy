@@ -22,6 +22,7 @@
 package cophy.model;
 
 import dr.evolution.tree.Tree;
+import dr.evolution.util.Units;
 import dr.inference.model.AbstractModel;
 import dr.inference.model.Model;
 
@@ -30,22 +31,36 @@ import dr.inference.model.Model;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public abstract class AbstractCophylogenyModel extends AbstractModel {
+public abstract class AbstractCophylogenyModel extends AbstractModel
+            implements Units {
 
     private static final long serialVersionUID = -2874567072654237379L;
 
     protected final Tree hostTree;
+    protected Units.Type units;
 
     public AbstractCophylogenyModel(final String name,
-                                    final Tree hostTree) {
+                                    final Tree hostTree,
+                                    final Units.Type units) {
         super(name);
         this.hostTree = hostTree;
         if (hostTree instanceof Model)
             addModel((Model) hostTree);
+        this.units = units;
     }
 
     public Tree getHostTree() {
         return hostTree;
+    }
+
+    @Override
+    public Units.Type getUnits() {
+        return units;
+    }
+
+    @Override
+    public void setUnits(Units.Type units) {
+        this.units = units;
     }
 
     public abstract double getOriginHeight();

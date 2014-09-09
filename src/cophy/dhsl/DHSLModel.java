@@ -23,6 +23,8 @@ package cophy.dhsl;
 
 import cophy.model.AbstractCophylogenyModel;
 import dr.evolution.tree.Tree;
+import dr.evolution.util.Units;
+import dr.evoxml.util.XMLUnits;
 import dr.inference.model.Model;
 import dr.inference.model.Parameter;
 import dr.inference.model.Variable;
@@ -53,9 +55,10 @@ public class DHSLModel extends AbstractCophylogenyModel {
                      final Parameter birthDiffRateParameter,
                      final Parameter relativeDeathRateParameter,
                      final Parameter hostSwitchProportionParameter,
-                     final Parameter originHeightParameter) {
+                     final Parameter originHeightParameter,
+                     final Units.Type units) {
 
-        super(DHSL_MODEL, hostTree);
+        super(DHSL_MODEL, hostTree, units);
 
         this.birthDiffRateParameter = birthDiffRateParameter;
         addVariable(birthDiffRateParameter);
@@ -179,12 +182,14 @@ public class DHSLModel extends AbstractCophylogenyModel {
                     final Parameter originHeightParameter =
                             (Parameter) xo.getChild(ORIGIN_HEIGHT)
                             .getChild(Parameter.class);
+                    final Units.Type units = XMLUnits.Utils.getUnitsAttr(xo);
 
                     return new DHSLModel(hostTree,
                                          birthDiffRateParameter,
                                          relativeDeathRateParameter,
                                          hostSwitchProportionParameter,
-                                         originHeightParameter);
+                                         originHeightParameter,
+                                         units);
 
                 }
 
@@ -199,6 +204,7 @@ public class DHSLModel extends AbstractCophylogenyModel {
                                         Parameter.class)}),
                         new ElementRule(ORIGIN_HEIGHT, new XMLSyntaxRule[]{
                                 new ElementRule(Parameter.class)}),
+                        XMLUnits.UNITS_RULE
                 };
                 @Override
                 public XMLSyntaxRule[] getSyntaxRules() {
