@@ -21,13 +21,23 @@
 
 package cophy.model;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import cophy.CophylogenyUtils;
+import cophy.NodeRefTrait;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
+import dr.evolution.tree.TreeTrait;
+import dr.evolution.tree.TreeTraitProvider;
+import dr.evolution.util.Taxon;
 import dr.inference.model.AbstractModel;
 import dr.inference.model.Model;
 import dr.inference.model.Variable;
 import dr.inference.model.Variable.ChangeType;
 import dr.xml.AbstractXMLObjectParser;
+import dr.xml.AttributeRule;
 import dr.xml.ElementRule;
 import dr.xml.XMLObject;
 import dr.xml.XMLParseException;
@@ -38,7 +48,7 @@ import dr.xml.XMLSyntaxRule;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public class Reconciliation extends AbstractModel {
+public class Reconciliation extends AbstractModel implements TreeTraitProvider {
 
     private static final long serialVersionUID = -8575817366502931528L;
 
@@ -46,24 +56,94 @@ public class Reconciliation extends AbstractModel {
 
     protected final Tree guestTree;
     protected final Tree hostTree;
+    protected final String hostTraitName;
     protected final boolean[] sampleable;
     protected int[] map;
     protected int[] storedMap;
 
+    protected final TreeTraitProvider.Helper treeTraitProvider;
+
+    {
+        treeTraitProvider = new TreeTraitProvider.Helper();
+    }
+
     public Reconciliation(final Tree guestTree,
-                          final Tree hostTree) {
+                          final Tree hostTree,
+                          final String hostTraitName) {
 
         super(RECONCILIATION);
+
         this.guestTree = guestTree;
         if (guestTree instanceof Model)
             addModel((Model) guestTree);
+
         this.hostTree = hostTree;
         if (hostTree instanceof Model)
             addModel((Model) hostTree);
+
+        this.hostTraitName = hostTraitName;
+
         map = new int[guestTree.getNodeCount()];
+        storedMap = new int[guestTree.getNodeCount()];
+
         sampleable = new boolean[guestTree.getNodeCount()];
         for (int i = 0; i < sampleable.length; ++i)
             sampleable[i] = !guestTree.isExternal(guestTree.getNode(i));
+
+        final NodeRefTrait trait = new NodeRefTrait(hostTraitName) {
+            @Override
+            public NodeRef getTrait(Tree tree, NodeRef node) {
+                if (tree != guestTree)
+                    throw new RuntimeException("Reconciliation " + getId()
+                                               + " can be logged only on tree "
+                                               + guestTree.getId() + ".");
+                return getHost(node);
+            }
+        };
+
+        treeTraitProvider.addTrait(trait);
+
+    }
+
+    public void initialize() {
+
+        final Map<Taxon,NodeRef> hostTaxa2Nodes =
+                new HashMap<Taxon,NodeRef>(hostTree.getTaxonCount());
+        for (int i = 0; i < hostTree.getExternalNodeCount(); ++i) {
+            final NodeRef hostNode = hostTree.getExternalNode(i);
+            final Taxon hostTaxon = hostTree.getNodeTaxon(hostNode);
+            hostTaxa2Nodes.put(hostTaxon, hostNode);
+        }
+
+        for (int i = 0; i < guestTree.getExternalNodeCount(); ++i) {
+            final NodeRef guestNode = guestTree.getExternalNode(i);
+            final Taxon guestTaxon = guestTree.getNodeTaxon(guestNode);
+            final Taxon hostTaxon;
+            try {
+                hostTaxon = (Taxon) guestTaxon.getAttribute(hostTraitName);
+            } catch (ClassCastException e) {
+                throw new RuntimeException("Host for guest "
+                                           + guestTaxon.getId()
+                                           + " is not a taxon.");
+            }
+
+            if (hostTaxon == null)
+                throw new RuntimeException("No host for guest "
+                                            + guestTaxon.getId() + ".");
+
+            final NodeRef hostNode = hostTaxa2Nodes.get(hostTaxon);
+            setHost(guestNode, hostNode);
+        }
+
+        for (int i = 0; i < guestTree.getInternalNodeCount(); ++i) {
+            final NodeRef guestNode = guestTree.getInternalNode(i);
+            final double height = guestTree.getNodeHeight(guestNode);
+            final Set<NodeRef> potentialHosts =
+                    CophylogenyUtils.getLineagesAtHeight(hostTree, height);
+            final NodeRef hostNode =
+                    CophylogenyUtils.getRandomElement(potentialHosts);
+            setHost(guestNode, hostNode);
+        }
 
     }
 
@@ -74,7 +154,7 @@ public class Reconciliation extends AbstractModel {
     public void setHost(final NodeRef guest, final NodeRef host) {
         if (!sampleable[guest.getNumber()])
             throw new RuntimeException("Cannot set host for node "
-                                                                + guest + "!");
+                                       + guest + ".");
         map[guest.getNumber()] = host.getNumber();
         fireModelChanged();
     }
@@ -111,11 +191,24 @@ public class Reconciliation extends AbstractModel {
         // Nothing to do
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    public TreeTrait[] getTreeTraits() {
+        return treeTraitProvider.getTreeTraits();
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public TreeTrait getTreeTrait(String key) {
+        return treeTraitProvider.getTreeTrait(key);
+    }
+
     public static final AbstractXMLObjectParser PARSER =
             new AbstractXMLObjectParser() {
 
                 private static final String GUEST = "guest";
                 private static final String HOST = "host";
+                private static final String HOST_TRAIT_NAME = "hostTraitName";
 
                 @Override
                 public String getParserName() {
@@ -130,8 +223,17 @@ public class Reconciliation extends AbstractModel {
                             (Tree) xo.getChild(GUEST).getChild(Tree.class);
                     final Tree hostTree =
                             (Tree) xo.getChild(HOST).getChild(Tree.class);
+                    final String hostTraitName =
+                            xo.getStringAttribute(HOST_TRAIT_NAME);
 
-                    return new Reconciliation(guestTree, hostTree);
+                    final Reconciliation reconciliation =
+                            new Reconciliation(guestTree,
+                                               hostTree,
+                                               hostTraitName);
+
+                    reconciliation.initialize();
+
+                    return reconciliation;
                 }
 
 
@@ -139,7 +241,8 @@ public class Reconciliation extends AbstractModel {
                         new ElementRule(GUEST, new XMLSyntaxRule[]{
                                 new ElementRule(Tree.class)}),
                         new ElementRule(HOST, new XMLSyntaxRule[]{
-                                new ElementRule(Tree.class)})
+                                new ElementRule(Tree.class)}),
+                        AttributeRule.newStringRule(HOST_TRAIT_NAME)
                 };
                 @Override
                 public XMLSyntaxRule[] getSyntaxRules() {
