@@ -21,11 +21,12 @@
 
 package cophy.simulation;
 
+import org.apache.commons.math.util.MathUtils;
+
 import cophy.CophyUtils;
 import cophy.model.Reconciliation;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
-import org.apache.commons.math.util.MathUtils;
 
 /**
  *
@@ -235,12 +236,12 @@ public abstract class CophylogeneticEvent {
             final long totalCombinations;
             final long invalidCombinations;
             if (source.equals(destination)) {
-                totalCombinations =
-                        MathUtils.binomialCoefficient(completeGuestCountSource,
-                                                      2);
-                invalidCombinations =
-                        MathUtils.binomialCoefficient(observedGuestCountSource,
-                                                      2);
+                totalCombinations = CophyUtils
+                        .extendedBinomialCoefficient(completeGuestCountSource,
+                                                     2);
+                invalidCombinations = CophyUtils
+                        .extendedBinomialCoefficient(observedGuestCountSource,
+                                                     2);
             } else {
                 final int completeGuestCountDestination =
                         state.getGuestCountAtHost(destination);
@@ -275,9 +276,9 @@ public abstract class CophylogeneticEvent {
 
             final long totalCombinations;
             if (source.equals(destination)) {
-                totalCombinations =
-                        MathUtils.binomialCoefficient(completeGuestCountSource,
-                                                      2);
+                totalCombinations = CophyUtils
+                        .extendedBinomialCoefficient(completeGuestCountSource,
+                                                     2);
             } else {
                 final int completeGuestCountDestination =
                         state.getGuestCountAtHost(destination);

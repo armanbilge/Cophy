@@ -110,6 +110,15 @@ public final class CophyUtils {
         return count;
     }
 
+    public static final long
+            extendedBinomialCoefficient(final int n, final int k) {
+        if (n >= 0 && n < k)
+            return 0;
+        else
+            return org.apache.commons.math.util
+                    .MathUtils.binomialCoefficient(n, k);
+    }
+
     public static final <T> T getRandomElement(Collection<T> collection) {
         int i = 0;
         final int r = MathUtils.nextInt(collection.size());
