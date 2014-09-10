@@ -1,5 +1,5 @@
 /**
- * CophylogenyUtils.java
+ * CophyUtils.java
  *
  * Cophy: Cophylogenetics for BEAST
  *
@@ -38,9 +38,9 @@ import dr.math.MathUtils;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public final class CophylogenyUtils {
+public final class CophyUtils {
 
-    private CophylogenyUtils() {}
+    private CophyUtils() {}
 
     public static final boolean lineageExistedAtHeight(final Tree tree,
                                                        final NodeRef node,
@@ -102,7 +102,7 @@ public final class CophylogenyUtils {
                                         final double height) {
         int count = 0;
         final Set<NodeRef> guestNodes =
-                CophylogenyUtils.getLineagesAtHeight(guestTree, height);
+                CophyUtils.getLineagesAtHeight(guestTree, height);
         for (final NodeRef guestNode : guestNodes) {
             if (hostNode.equals(reconciliation.getHost(guestNode)))
                 ++count;

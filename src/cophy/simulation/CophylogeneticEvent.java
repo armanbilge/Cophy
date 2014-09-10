@@ -21,7 +21,7 @@
 
 package cophy.simulation;
 
-import cophy.CophylogenyUtils;
+import cophy.CophyUtils;
 import cophy.model.Reconciliation;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
@@ -155,7 +155,7 @@ public abstract class CophylogeneticEvent {
                                                final
                                                Reconciliation reconciliation) {
 
-            final int observedGuestCount = CophylogenyUtils
+            final int observedGuestCount = CophyUtils
                     .getGuestCountAtHostAtHeight(guestTree,
                                                  reconciliation,
                                                  node,
@@ -226,7 +226,7 @@ public abstract class CophylogeneticEvent {
 
             final int completeGuestCountSource =
                     state.getGuestCountAtHost(source);
-            final int observedGuestCountSource = CophylogenyUtils
+            final int observedGuestCountSource = CophyUtils
                         .getGuestCountAtHostAtHeight(guestTree,
                                                      reconciliation,
                                                      source,
@@ -244,7 +244,7 @@ public abstract class CophylogeneticEvent {
             } else {
                 final int completeGuestCountDestination =
                         state.getGuestCountAtHost(destination);
-                final int observedGuestCountDestination = CophylogenyUtils
+                final int observedGuestCountDestination = CophyUtils
                         .getGuestCountAtHostAtHeight(guestTree,
                                                      reconciliation,
                                                      destination,

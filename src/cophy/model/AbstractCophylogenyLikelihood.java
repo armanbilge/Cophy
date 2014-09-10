@@ -21,7 +21,7 @@
 
 package cophy.model;
 
-import cophy.CophylogenyUtils;
+import cophy.CophyUtils;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 import dr.inference.model.Likelihood;
@@ -79,7 +79,7 @@ public abstract class AbstractCophylogenyLikelihood
             final NodeRef hostNode = reconciliation.getHost(guestNode);
             final double height = guestTree.getNodeHeight(guestNode);
             final boolean valid =
-                    CophylogenyUtils.lineageExistedAtHeight(hostTree,
+                    CophyUtils.lineageExistedAtHeight(hostTree,
                                                             hostNode,
                                                             height);
             if (!valid) return false;

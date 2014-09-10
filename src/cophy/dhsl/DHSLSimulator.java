@@ -24,7 +24,7 @@ package cophy.dhsl;
 import java.util.HashSet;
 import java.util.Set;
 
-import cophy.CophylogenyUtils;
+import cophy.CophyUtils;
 import cophy.simulation.CophylogeneticEvent;
 import cophy.simulation.CophylogeneticEvent.BirthEvent;
 import cophy.simulation.CophylogeneticEvent.CospeciationEvent;
@@ -73,15 +73,15 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
         final int event;
         if (hostTree.isRoot(hostNode)) { // No host-switching at root
-            event = CophylogenyUtils.nextWeightedInteger(duplicationRate,
+            event = CophyUtils.nextWeightedInteger(duplicationRate,
                                                          lossRate);
-            height -= CophylogenyUtils.nextPoissonTime(duplicationRate,
+            height -= CophyUtils.nextPoissonTime(duplicationRate,
                                                        lossRate);
         } else {
-            event = CophylogenyUtils.nextWeightedInteger(duplicationRate,
+            event = CophyUtils.nextWeightedInteger(duplicationRate,
                                                          lossRate,
                                                          hostSwitchRate);
-            height -= CophylogenyUtils.nextPoissonTime(duplicationRate,
+            height -= CophyUtils.nextPoissonTime(duplicationRate,
                                                        lossRate,
                                                        hostSwitchRate);
         }
@@ -118,9 +118,9 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
                 hosts[0] = hostNode;
                 final Set<NodeRef> potentialHosts =
-                        CophylogenyUtils.getLineagesAtHeight(hostTree, height);
+                        CophyUtils.getLineagesAtHeight(hostTree, height);
                 potentialHosts.remove(hostNode);
-                hosts[1]  = CophylogenyUtils.getRandomElement(potentialHosts);
+                hosts[1]  = CophyUtils.getRandomElement(potentialHosts);
 
                 final int r = MathUtils.nextInt(2);
                 leftHost = hosts[r];
@@ -187,14 +187,14 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
                 if (state.getHostCount() > 1) {
 
-                    nextEventHeight = CophylogenyUtils
+                    nextEventHeight = CophyUtils
                             .nextPoissonTime(normalizedDuplicationRate,
                                              normalizedLossRate,
                                              normalizedHostSwitchRate);
 
                 } else { // No host-switching possible
 
-                    nextEventHeight = CophylogenyUtils
+                    nextEventHeight = CophyUtils
                             .nextPoissonTime(normalizedDuplicationRate,
                                              normalizedLossRate);
 
@@ -206,14 +206,14 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
                 final int nextEventType;
                 if (state.getHostCount() > 1) {
 
-                    nextEventType = CophylogenyUtils
+                    nextEventType = CophyUtils
                             .nextWeightedInteger(normalizedDuplicationRate,
                                                  normalizedLossRate,
                                                  normalizedHostSwitchRate);
 
                 } else { // No host-switching possible
 
-                    nextEventType = CophylogenyUtils
+                    nextEventType = CophyUtils
                             .nextWeightedInteger(normalizedDuplicationRate,
                                                  normalizedLossRate);
 
@@ -236,7 +236,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
                             new HashSet<NodeRef>(state.getHosts());
                     potentialHosts.remove(affectedHost);
                     final NodeRef newHost =
-                            CophylogenyUtils.getRandomElement(potentialHosts);
+                            CophyUtils.getRandomElement(potentialHosts);
                     nextEvent = new HostSwitchEvent(nextEventHeight,
                                                     affectedHost,
                                                     newHost);
@@ -268,7 +268,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
         final int nextEventType;
         if (state.getHostCount() > 1) {
 
-            nextEventType = CophylogenyUtils
+            nextEventType = CophyUtils
                     .nextWeightedInteger(model.getDuplicationProportion(),
                                          model.getHostSwitchProportion());
 
@@ -289,7 +289,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
                     new HashSet<NodeRef>(state.getHosts());
             potentialHosts.remove(source);
             final NodeRef newHost =
-                    CophylogenyUtils.getRandomElement(potentialHosts);
+                    CophyUtils.getRandomElement(potentialHosts);
             nextEvent = new HostSwitchEvent(eventHeight, source, newHost);
         default: // Should not be needed
             throw new RuntimeException("Undefined event.");

@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import cophy.CophylogenyUtils;
+import cophy.CophyUtils;
 import cophy.simulation.CophylogeneticEvent.CophylogeneticEventFailedException;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
@@ -67,7 +67,7 @@ public class MutableCophylogeneticTrajectoryState
 
         event.apply(this);
 
-        final int lineageCount = CophylogenyUtils
+        final int lineageCount = CophyUtils
                 .getLineageCountAtHeight(hostTree, height);
         if (lineageCount != state.size())
             throw new CophylogeneticEventFailedException(event);
@@ -130,7 +130,7 @@ public class MutableCophylogeneticTrajectoryState
 
     @Override
     public NodeRef getRandomWeightedHost() {
-        return CophylogenyUtils.nextWeightedObject(state);
+        return CophyUtils.nextWeightedObject(state);
     }
 
 }

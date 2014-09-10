@@ -26,7 +26,7 @@ import java.util.NavigableMap;
 import java.util.Queue;
 import java.util.TreeMap;
 
-import cophy.CophylogenyUtils;
+import cophy.CophyUtils;
 import cophy.model.AbstractCophylogenyLikelihood;
 import cophy.model.Reconciliation;
 import cophy.particlefiltration.AbstractParticle.Particle;
@@ -146,7 +146,7 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
             final double meanWeight = totalWeight / particles.length;
             logLikelihood += Math.log(meanWeight);
 
-            CophylogenyUtils.resample(particles);
+            CophyUtils.resample(particles);
             previousUntil = until;
 
         }

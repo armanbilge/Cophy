@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import cophy.CophylogenyUtils;
+import cophy.CophyUtils;
 import cophy.NodeRefTrait;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
@@ -138,9 +138,9 @@ public class Reconciliation extends AbstractModel implements TreeTraitProvider {
             final NodeRef guestNode = guestTree.getInternalNode(i);
             final double height = guestTree.getNodeHeight(guestNode);
             final Set<NodeRef> potentialHosts =
-                    CophylogenyUtils.getLineagesAtHeight(hostTree, height);
+                    CophyUtils.getLineagesAtHeight(hostTree, height);
             final NodeRef hostNode =
-                    CophylogenyUtils.getRandomElement(potentialHosts);
+                    CophyUtils.getRandomElement(potentialHosts);
             setHost(guestNode, hostNode);
         }
 

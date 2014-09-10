@@ -23,7 +23,7 @@ package cophy.operation;
 
 import java.util.Set;
 
-import cophy.CophylogenyUtils;
+import cophy.CophyUtils;
 import cophy.model.Reconciliation;
 import dr.evolution.tree.MutableTree;
 import dr.evolution.tree.NodeRef;
@@ -100,15 +100,15 @@ public class HostSwitchOperator extends SimpleMCMCOperator {
         final double newHeight = MathUtils.nextDouble() * range + lower;
 
         final Set<NodeRef> potentialHosts =
-                CophylogenyUtils.getLineagesAtHeight(hostTree, newHeight);
+                CophyUtils.getLineagesAtHeight(hostTree, newHeight);
         final NodeRef newHost =
-                CophylogenyUtils.getRandomElement(potentialHosts);
+                CophyUtils.getRandomElement(potentialHosts);
 
         guestTree.setNodeHeight(guestNode, newHeight);
         reconciliation.setHost(guestNode, newHost);
 
         final int inversePotentialHostCount =
-                CophylogenyUtils.getLineageCountAtHeight(hostTree, oldHeight);
+                CophyUtils.getLineageCountAtHeight(hostTree, oldHeight);
 
         return Math.log(potentialHosts.size())
                 - Math.log(inversePotentialHostCount);
