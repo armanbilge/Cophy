@@ -21,9 +21,11 @@
 
 package cophy.particlefiltration;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.NavigableMap;
 import java.util.Queue;
+import java.util.Set;
 import java.util.TreeMap;
 
 import cophy.CophyUtils;
@@ -74,13 +76,15 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
 
         if (!isValid()) return Double.NEGATIVE_INFINITY;
 
-        final NavigableMap<Double,NodeRef> heights2Nodes =
-                new TreeMap<Double,NodeRef>();
+        final NavigableMap<Double,Set<NodeRef>> heights2Nodes =
+                new TreeMap<Double,Set<NodeRef>>();
 
         for (int i = 0; i < guestTree.getInternalNodeCount(); ++i) {
             final NodeRef node = guestTree.getInternalNode(i);
             final double height = guestTree.getNodeHeight(node);
-            heights2Nodes.put(height, node);
+            if (!heights2Nodes.containsKey(height))
+                heights2Nodes.put(height, new HashSet<NodeRef>());
+            heights2Nodes.get(height).add(node);
         }
 
         for (int i = 0; i < particles.length; ++i) {
@@ -121,23 +125,29 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
                     }
                 }
 
-                final NodeRef speciatingNode = heights2Nodes.get(until);
-                final NodeRef speciatingNodeHost =
-                        reconciliation.getHost(speciatingNode);
-                double p =
-                        simulator.simulateSpeciationEvent(trajectory,
-                                                          until,
-                                                          speciatingNodeHost);
-                particle.multiplyWeight(p);
+                final Set<NodeRef> speciatingNodes = heights2Nodes.get(until);
+                for (final NodeRef speciatingNode : speciatingNodes) {
 
-                final SpeciationEvent event =
-                        (SpeciationEvent) trajectory.getLastEvent();
-                final CophylogeneticTrajectoryState state =
-                        trajectory.getCurrentState();
-                p = event.getProbabilityObserved(state,
-                                                 guestTree,
-                                                 reconciliation);
-                particle.multiplyWeight(p);
+                    final NodeRef speciatingNodeHost =
+                            reconciliation.getHost(speciatingNode);
+                    double p = simulator
+                            .simulateSpeciationEvent(trajectory,
+                                                     until,
+                                                     speciatingNodeHost);
+                    particle.multiplyWeight(p);
+
+                    final SpeciationEvent event =
+                            (SpeciationEvent) trajectory.getLastEvent();
+                    final CophylogeneticTrajectoryState state =
+                            trajectory.getCurrentState();
+                    p = event.getProbabilityObserved(state,
+                                                     guestTree,
+                                                     reconciliation);
+                    particle.multiplyWeight(p);
+
+                    // TODO Proper handling of weights for multiple nodes
+
+                }
 
                 totalWeight += particle.getWeight();
 

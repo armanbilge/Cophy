@@ -162,13 +162,15 @@ public abstract class CophylogeneticEvent {
                                                  node,
                                                  eventHeight);
             final int completeGuestCount = state.getGuestCountAtHost(node);
-            final long invalidCombinations =
-                    MathUtils.factorial(observedGuestCount);
-            final long totalCombinations =
-                    MathUtils.factorial(completeGuestCount);
+            // TODO Replace factorial division with a simplified form for
+            // increased numerical stability
+            final double invalidCombinations =
+                    MathUtils.factorialDouble(observedGuestCount);
+            final double totalCombinations =
+                    MathUtils.factorialDouble(completeGuestCount);
 
             return (totalCombinations - invalidCombinations)
-                    / (double) totalCombinations;
+                    / totalCombinations;
         }
 
         @Override
@@ -181,8 +183,8 @@ public abstract class CophylogeneticEvent {
                                              Reconciliation reconciliation) {
 
             final int completeGuestCount = state.getGuestCountAtHost(node);
-            final long totalCombinations =
-                    MathUtils.factorial(completeGuestCount);
+            final double totalCombinations =
+                    MathUtils.factorialDouble(completeGuestCount);
 
             return 1.0 / totalCombinations;
         }
