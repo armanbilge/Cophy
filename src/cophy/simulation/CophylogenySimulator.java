@@ -23,6 +23,7 @@ package cophy.simulation;
 
 import cophy.model.AbstractCophylogenyModel;
 import cophy.simulation.CophylogeneticEvent.CospeciationEvent;
+import dr.evolution.tree.MutableTree;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.SimpleNode;
 import dr.evolution.tree.SimpleTree;
@@ -36,7 +37,7 @@ import dr.evolution.tree.Tree;
 public abstract class CophylogenySimulator<T extends AbstractCophylogenyModel> {
 
     public static final String HOST = "host";
-    protected static final String EXTINCT = "extinct";
+    public static final String EXTINCT = "extinct";
 
     protected final T model;
     protected final boolean complete;
@@ -46,16 +47,24 @@ public abstract class CophylogenySimulator<T extends AbstractCophylogenyModel> {
         this.complete = complete;
     }
 
+    public Tree createTree() {
+        final NodeRef hostRoot = model.getHostTree().getRoot();
+        final double originHeight = model.getOriginHeight();
+        final SimpleNode root = new SimpleNode();
+        root.setHeight(originHeight);
+        root.setAttribute(HOST, hostRoot);
+        return new SimpleTree(root);
+    }
+
     public Tree simulateTree() {
         return simulateTree(0.0);
     }
 
     public Tree simulateTree(final double until) {
 
-        final NodeRef hostRoot = model.getHostTree().getRoot();
-        final double originHeight = model.getOriginHeight();
-        final SimpleNode root = simulateSubtree(hostRoot, originHeight, until);
-        return new SimpleTree(root);
+        final Tree tree = createTree();
+        resumeSimulation(tree, until);
+        return tree;
 
     }
 
@@ -91,6 +100,37 @@ public abstract class CophylogenySimulator<T extends AbstractCophylogenyModel> {
                                                   final NodeRef hostNode,
                                                   double height,
                                                   final double until);
+
+    public double simulateSpecationEvent(final Tree tree,
+                                         final double height,
+                                         final NodeRef source) {
+
+        final Tree hostTree = model.getHostTree();
+        if (hostTree.getNodeHeight(source) == height) // Cospeciation event
+            return simulateCospeciationEvent(tree, height, source);
+        else // Birth event
+            return simulateBirthEvent(tree, height, source);
+
+    }
+
+    protected double
+            simulateCospeciationEvent(final Tree tree,
+                                      final double height,
+                                      final NodeRef source) {
+
+        final MutableTree mutableTree = (MutableTree) tree;
+
+
+
+        return 1.0; // Cospeciation events are always guaranteed
+                    // i.e. occur with equal weight
+}
+
+    protected abstract double
+            simulateBirthEvent(final Tree tree,
+                               final double height,
+                               final NodeRef source);
+
 
     public CophylogeneticTrajectory createTrajectory() {
         return new CophylogeneticTrajectory(model.getOriginHeight(),

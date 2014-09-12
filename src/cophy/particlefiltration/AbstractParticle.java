@@ -111,6 +111,15 @@ public abstract class AbstractParticle<T> implements Copyable {
             return copy;
         }
 
+        public NodeRef getCompleteNode(final NodeRef reconstructed) {
+            return nodeMap.get(reconstructed);
+        }
+
+        public void setCompleteNode(final NodeRef reconstructed,
+                                    final NodeRef complete) {
+            nodeMap.put(reconstructed, complete);
+        }
+
     }
 
 }

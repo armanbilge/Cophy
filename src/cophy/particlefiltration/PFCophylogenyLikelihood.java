@@ -22,6 +22,8 @@
 package cophy.particlefiltration;
 
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.NavigableMap;
 import java.util.Queue;
@@ -31,13 +33,10 @@ import java.util.TreeMap;
 import cophy.CophyUtils;
 import cophy.model.AbstractCophylogenyLikelihood;
 import cophy.model.Reconciliation;
-import cophy.particlefiltration.AbstractParticle.Particle;
-import cophy.simulation.CophylogeneticEvent;
-import cophy.simulation.CophylogeneticEvent.SpeciationEvent;
-import cophy.simulation.CophylogeneticTrajectory;
-import cophy.simulation.CophylogeneticTrajectoryState;
+import cophy.particlefiltration.AbstractParticle.TreeParticle;
 import cophy.simulation.CophylogenySimulator;
 import dr.evolution.tree.NodeRef;
+import dr.evolution.tree.SimpleNode;
 import dr.evolution.tree.Tree;
 import dr.xml.AbstractXMLObjectParser;
 import dr.xml.AttributeRule;
@@ -56,7 +55,7 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
     private static final long serialVersionUID = -6527862383425163978L;
 
     final protected CophylogenySimulator<?> simulator;
-    final protected Particle<CophylogeneticTrajectory>[] particles;
+    final protected TreeParticle[] particles;
     final int particleCount;
 
     @SuppressWarnings("unchecked")
@@ -67,7 +66,7 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
 
         super(simulator.getModel(), guestTree, reconciliation);
         this.simulator = simulator;
-        this.particles = new Particle[particleCount];
+        this.particles = new TreeParticle[particleCount];
         this.particleCount = particleCount;
     }
 
@@ -88,9 +87,8 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
         }
 
         for (int i = 0; i < particles.length; ++i) {
-            final CophylogeneticTrajectory trajectory =
-                    simulator.createTrajectory();
-            particles[i] = new Particle<CophylogeneticTrajectory>(trajectory);
+            final Tree tree = simulator.createTree();
+            particles[i] = new TreeParticle(tree);
         }
 
         final Queue<Double> speciationsQueue =
@@ -103,74 +101,54 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
 
             double totalWeight = 0.0;
 
-            for(final Particle<CophylogeneticTrajectory> particle : particles) {
+            for (final TreeParticle particle : particles) {
 
-                final CophylogeneticTrajectory trajectory = particle.getValue();
-                simulator.resumeSimulation(trajectory, until);
-
-                // Rewind and replay
-                trajectory.getStateAtHeight(previousUntil);
-                while (trajectory.hasNextEvent()) {
-                    final CophylogeneticEvent event =
-                            trajectory.pollNextEvent();
-                    if (event.isSpeciation()) {
-                        final CophylogeneticTrajectoryState state =
-                                trajectory.getCurrentState();
-                        final double p = ((SpeciationEvent) event)
-                                .getProbabilityUnobserved(state,
-                                                          guestTree,
-                                                          reconciliation);
-                        particle.multiplyWeight(p);
-
-                    }
-                }
+                final Tree tree = particle.getValue();
+                simulator.resumeSimulation(tree, until);
 
                 final Set<NodeRef> speciatingNodes = heights2Nodes.get(until);
                 for (final NodeRef speciatingNode : speciatingNodes) {
 
                     final NodeRef speciatingNodeHost =
                             reconciliation.getHost(speciatingNode);
-                    double p = simulator
-                            .simulateSpeciationEvent(trajectory,
-                                                     until,
-                                                     speciatingNodeHost);
-                    particle.multiplyWeight(p);
+                    final NodeRef completeParent =
+                            particle.getCompleteNode(speciatingNode);
 
-                    final SpeciationEvent event =
-                            (SpeciationEvent) trajectory.getLastEvent();
-                    final CophylogeneticTrajectoryState state =
-                            trajectory.getCurrentState();
-                    p = event.getProbabilityObserved(state,
-                                                     guestTree,
-                                                     reconciliation);
-                    particle.multiplyWeight(p);
+                    final NodeRef head;
+                    if (CophyUtils.isLeft(guestTree, speciatingNode))
+                        head = tree.getChild(completeParent, 0);
+                    else
+                        head = tree.getChild(completeParent, 1);
 
-                    // TODO Proper handling of weights for multiple nodes
+                    final Set<NodeRef> potentialCompletes =
+                            new LinkedHashSet<NodeRef>(Tree.Utils
+                                    .getExternalNodes(guestTree, head));
 
-                }
+                    for (final Iterator<NodeRef> iter =
+                            potentialCompletes.iterator();
+                            iter.hasNext();) {
 
-                double rho = 1.0;
-                for (int i = 0; i < hostTree.getExternalNodeCount(); ++i) {
-                    final NodeRef host = hostTree.getExternalNode(i);
-                    final CophylogeneticTrajectoryState state =
-                            trajectory.getCurrentState();
-                    final int completeCount = state.getGuestCountAtHost(host);
-                    final int reconstructedCount = CophyUtils
-                            .getGuestCountAtHostAtHeight(guestTree,
-                                                         reconciliation,
-                                                         host,
-                                                         0.0);
-                    final double samplingProbability =
-                            model.getSamplingProbability(host);
-                    rho *= CophyUtils
-                            .extendedBinomialCoefficient(completeCount,
-                                                         reconstructedCount);
-                    rho *= Math.pow(samplingProbability, reconstructedCount);
-                    rho *= Math.pow(1 - samplingProbability,
-                                    completeCount - reconstructedCount);
+                        final SimpleNode node = (SimpleNode) iter.next();
+                        if (node.getAttribute(CophylogenySimulator.EXTINCT)
+                                == null ||
+                                !node.getAttribute(CophylogenySimulator.HOST)
+                                .equals(speciatingNodeHost))
+                            iter.remove();
+
+                        final int size = potentialCompletes.size();
+                        if (size == 0) {
+                            particle.multiplyWeight(0.0);
+                            break;
+                        }
+
+                        final NodeRef complete =
+                                CophyUtils.getRandomElement(potentialCompletes);
+
+                        final double w = simulator.s
+
+                    }
 
                 }
-                particle.multiplyWeight(rho);
 
                 totalWeight += particle.getWeight();
 

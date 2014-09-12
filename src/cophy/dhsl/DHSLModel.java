@@ -136,7 +136,7 @@ public class DHSLModel extends AbstractCophylogenyModel {
     protected void handleModelChangedEvent(final Model model,
                                            final Object object,
                                            final int index) {
-        this.fireModelChanged();
+        fireModelChanged();
     }
 
     @Override

@@ -110,6 +110,13 @@ public final class CophyUtils {
         return count;
     }
 
+    public static final boolean isLeft(final Tree tree, final NodeRef node) {
+        if (tree.isRoot(node))
+            throw new RuntimeException("Root is not a child.");
+        final NodeRef parent = tree.getParent(node);
+        return tree.getChild(parent, 0).equals(node);
+    }
+
     public static final long
             extendedBinomialCoefficient(final int n, final int k) {
         if (n >= 0 && n < k)
