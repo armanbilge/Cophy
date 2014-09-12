@@ -149,6 +149,29 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
 
                 }
 
+                double rho = 1.0;
+                for (int i = 0; i < hostTree.getExternalNodeCount(); ++i) {
+                    final NodeRef host = hostTree.getExternalNode(i);
+                    final CophylogeneticTrajectoryState state =
+                            trajectory.getCurrentState();
+                    final int completeCount = state.getGuestCountAtHost(host);
+                    final int reconstructedCount = CophyUtils
+                            .getGuestCountAtHostAtHeight(guestTree,
+                                                         reconciliation,
+                                                         host,
+                                                         0.0);
+                    final double samplingProbability =
+                            model.getSamplingProbability(host);
+                    rho *= CophyUtils
+                            .extendedBinomialCoefficient(completeCount,
+                                                         reconstructedCount);
+                    rho *= Math.pow(samplingProbability, reconstructedCount);
+                    rho *= Math.pow(1 - samplingProbability,
+                                    completeCount - reconstructedCount);
+
+                }
+                particle.multiplyWeight(rho);
+
                 totalWeight += particle.getWeight();
 
             }

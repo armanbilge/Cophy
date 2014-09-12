@@ -21,6 +21,7 @@
 
 package cophy.model;
 
+import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 import dr.evolution.util.Units;
 import dr.inference.model.AbstractModel;
@@ -64,5 +65,9 @@ public abstract class AbstractCophylogenyModel extends AbstractModel
     }
 
     public abstract double getOriginHeight();
+
+    public double getSamplingProbability(final NodeRef host) {
+        return 1.0;
+    }
 
 }

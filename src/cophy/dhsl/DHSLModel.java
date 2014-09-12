@@ -22,6 +22,7 @@
 package cophy.dhsl;
 
 import cophy.model.AbstractCophylogenyModel;
+import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 import dr.evolution.util.Units;
 import dr.evoxml.util.XMLUnits;
@@ -50,12 +51,14 @@ public class DHSLModel extends AbstractCophylogenyModel {
     protected final Parameter relativeDeathRateParameter;
     protected final Parameter hostSwitchProportionParameter;
     protected final Parameter originHeightParameter;
+    protected final Parameter samplingProbabilityParameter;
 
     public DHSLModel(final Tree hostTree,
                      final Parameter birthDiffRateParameter,
                      final Parameter relativeDeathRateParameter,
                      final Parameter hostSwitchProportionParameter,
                      final Parameter originHeightParameter,
+                     final Parameter samplingProbabilityParameter,
                      final Units.Type units) {
 
         super(DHSL_MODEL, hostTree, units);
@@ -71,6 +74,9 @@ public class DHSLModel extends AbstractCophylogenyModel {
 
         this.originHeightParameter = originHeightParameter;
         addVariable(originHeightParameter);
+
+        this.samplingProbabilityParameter = samplingProbabilityParameter;
+        addVariable(samplingProbabilityParameter);
     }
 
     @Override
@@ -112,6 +118,13 @@ public class DHSLModel extends AbstractCophylogenyModel {
 
     public double getLossRate() {
         return getDeathRate();
+    }
+
+    @Override
+    public double getSamplingProbability(final NodeRef host) {
+        if (!hostTree.isExternal(host))
+            throw new RuntimeException("No sampling rate for non-extant hosts");
+        return samplingProbabilityParameter.getValue(host.getNumber());
     }
 
     @Override
@@ -159,6 +172,8 @@ public class DHSLModel extends AbstractCophylogenyModel {
                 private static final String HOST_SWITCH_PROPORTION =
                         "hostSwitchProportion";
                 private static final String ORIGIN_HEIGHT = "originHeight";
+                private static final String SAMPLING_PROBABILITY =
+                        "samplingProbability";
 
                 @Override
                 public String getParserName() {
@@ -182,6 +197,9 @@ public class DHSLModel extends AbstractCophylogenyModel {
                     final Parameter originHeightParameter =
                             (Parameter) xo.getChild(ORIGIN_HEIGHT)
                             .getChild(Parameter.class);
+                    final Parameter samplingProbabilityParameter =
+                            (Parameter) xo.getChild(SAMPLING_PROBABILITY)
+                            .getChild(Parameter.class);
                     final Units.Type units = XMLUnits.Utils.getUnitsAttr(xo);
 
                     return new DHSLModel(hostTree,
@@ -189,6 +207,7 @@ public class DHSLModel extends AbstractCophylogenyModel {
                                          relativeDeathRateParameter,
                                          hostSwitchProportionParameter,
                                          originHeightParameter,
+                                         samplingProbabilityParameter,
                                          units);
 
                 }
@@ -204,6 +223,9 @@ public class DHSLModel extends AbstractCophylogenyModel {
                                         Parameter.class)}),
                         new ElementRule(ORIGIN_HEIGHT, new XMLSyntaxRule[]{
                                 new ElementRule(Parameter.class)}),
+                        new ElementRule(SAMPLING_PROBABILITY,
+                                new XMLSyntaxRule[]{new ElementRule(
+                                        Parameter.class)}),
                         XMLUnits.UNITS_RULE
                 };
                 @Override
