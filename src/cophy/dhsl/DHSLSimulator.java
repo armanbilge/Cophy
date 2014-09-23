@@ -159,6 +159,66 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
     }
 
     @Override
+    public double simulateBirthEvent(final Tree tree,
+                                     final NodeRef node,
+                                     final double height) {
+
+        final Tree hostTree = model.getHostTree();
+        final SimpleNode simpleNode = (SimpleNode) node;
+        final NodeRef host = (NodeRef) simpleNode.getAttribute(HOST);
+
+        final int nextEventType;
+        if (CophyUtils.getLineageCountAtHeight(hostTree, height) > 1) {
+
+            nextEventType = CophyUtils
+                    .nextWeightedInteger(model.getDuplicationProportion(),
+                                         model.getHostSwitchProportion());
+
+        } else { // No host-switching possible
+
+            nextEventType = 0; // Has to be a duplication
+
+        }
+
+        final SimpleNode child1 = new SimpleNode();
+        child1.setHeight(height);
+        child1.setAttribute(HOST, host);
+        final SimpleNode child2 = new SimpleNode();
+        child2.setHeight(height);
+
+        switch(nextEventType) {
+        case 0: // Duplication event
+            child2.setAttribute(HOST, host);
+            break;
+        case 1: // Host-switch event
+            final Set<NodeRef> potentialHosts =
+                    CophyUtils.getLineagesAtHeight(hostTree, height);
+            potentialHosts.remove(host);
+            final NodeRef newHost =
+                    CophyUtils.getRandomElement(potentialHosts);
+            child2.setAttribute(HOST, newHost);
+        default: // Should not be needed
+            throw new RuntimeException("Undefined event.");
+        }
+
+        final SimpleNode left, right;
+        if (MathUtils.nextBoolean()) {
+            left = child1;
+            right = child2;
+        } else {
+            left = child2;
+            right = child1;
+        }
+
+        simpleNode.insertChild(left, 0);
+        simpleNode.insertChild(right, 1);
+
+        return 1.0;
+
+    }
+
+
+    @Override
     public void resumeSimulation(final CophylogeneticTrajectory trajectory,
                                  final double until) {
 

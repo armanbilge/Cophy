@@ -23,11 +23,11 @@ package cophy;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import cophy.model.Reconciliation;
 import cophy.particlefiltration.AbstractParticle;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
@@ -97,18 +97,43 @@ public final class CophyUtils {
 
     public static final int
             getGuestCountAtHostAtHeight(final Tree guestTree,
-                                        final Reconciliation reconciliation,
                                         final NodeRef hostNode,
-                                        final double height) {
+                                        final double height,
+                                        final String hostTraitName) {
         int count = 0;
         final Set<NodeRef> guestNodes =
                 CophyUtils.getLineagesAtHeight(guestTree, height);
         for (final NodeRef guestNode : guestNodes) {
-            if (hostNode.equals(reconciliation.getHost(guestNode)))
-                ++count;
+            final NodeRef actualHost = (NodeRef) guestTree
+                    .getNodeAttribute(guestNode, hostTraitName);
+            if (hostNode.equals(actualHost)) ++count;
         }
         return count;
     }
+
+    public static final Set<NodeRef>
+            getGuestsAtHostAtHeight(final Tree guestTree,
+                                    final NodeRef hostNode,
+                                    final double height,
+                                    final String hostTraitName) {
+
+        final Set<NodeRef> guestNodes =
+                CophyUtils.getLineagesAtHeight(guestTree, height);
+        for (final Iterator<NodeRef> iter = guestNodes.iterator();
+             iter.hasNext();) {
+
+            final NodeRef guestNode = iter.next();
+            final NodeRef actualHost = (NodeRef) guestTree
+                    .getNodeAttribute(guestNode, hostTraitName);
+            if (!hostNode.equals(actualHost))
+                iter.remove();
+
+        }
+
+        return guestNodes;
+
+    }
+
 
     public static final boolean isLeft(final Tree tree, final NodeRef node) {
         if (tree.isRoot(node))

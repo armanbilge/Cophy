@@ -158,9 +158,9 @@ public abstract class CophylogeneticEvent {
 
             final int observedGuestCount = CophyUtils
                     .getGuestCountAtHostAtHeight(guestTree,
-                                                 reconciliation,
                                                  node,
-                                                 eventHeight);
+                                                 eventHeight,
+                                                 CophylogenySimulator.HOST);
             final int completeGuestCount = state.getGuestCountAtHost(node);
             // TODO Replace factorial division with a simplified form for
             // increased numerical stability
@@ -231,9 +231,9 @@ public abstract class CophylogeneticEvent {
                     state.getGuestCountAtHost(source);
             final int observedGuestCountSource = CophyUtils
                         .getGuestCountAtHostAtHeight(guestTree,
-                                                     reconciliation,
                                                      source,
-                                                     eventHeight);
+                                                     eventHeight,
+                                                     CophylogenySimulator.HOST);
 
             final long totalCombinations;
             final long invalidCombinations;
@@ -249,9 +249,9 @@ public abstract class CophylogeneticEvent {
                         state.getGuestCountAtHost(destination);
                 final int observedGuestCountDestination = CophyUtils
                         .getGuestCountAtHostAtHeight(guestTree,
-                                                     reconciliation,
                                                      destination,
-                                                     eventHeight);
+                                                     eventHeight,
+                                                     CophylogenySimulator.HOST);
 
                 totalCombinations = completeGuestCountSource
                         * completeGuestCountDestination;

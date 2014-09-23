@@ -99,11 +99,6 @@ public abstract class AbstractParticle<T> implements Copyable {
             super(value, weight);
         }
 
-        public void setReconstructedNode(final NodeRef completeNode,
-                                         final NodeRef reconstructedNode) {
-            nodeMap.put(completeNode, reconstructedNode);
-        }
-
         @Override
         public TreeParticle copy() {
             final TreeParticle copy = new TreeParticle(value.getCopy(), weight);

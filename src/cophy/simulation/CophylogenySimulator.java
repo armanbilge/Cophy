@@ -102,25 +102,33 @@ public abstract class CophylogenySimulator<T extends AbstractCophylogenyModel> {
                                                   final double until);
 
     public double simulateSpecationEvent(final Tree tree,
-                                         final double height,
-                                         final NodeRef source) {
+                                         final NodeRef node,
+                                         final double height) {
 
         final Tree hostTree = model.getHostTree();
-        if (hostTree.getNodeHeight(source) == height) // Cospeciation event
-            return simulateCospeciationEvent(tree, height, source);
+        final NodeRef hostNode =
+                (NodeRef) ((SimpleNode) node).getAttribute(HOST);
+        if (hostTree.getNodeHeight(hostNode) == height) // Cospeciation event
+            return simulateCospeciationEvent(tree, node, height);
         else // Birth event
-            return simulateBirthEvent(tree, height, source);
+            return simulateBirthEvent(tree, node, height);
 
     }
 
     protected double
             simulateCospeciationEvent(final Tree tree,
-                                      final double height,
-                                      final NodeRef source) {
+                                      final NodeRef node,
+                                      final double height) {
 
         final MutableTree mutableTree = (MutableTree) tree;
 
-
+        final NodeRef host = (NodeRef) ((SimpleNode) node).getAttribute(HOST);
+        final SimpleNode left = new SimpleNode();
+        left.setAttribute(HOST, host);
+        mutableTree.addChild(node, left);
+        final SimpleNode right = new SimpleNode();
+        right.setAttribute(HOST, right);
+        mutableTree.addChild(node, right);
 
         return 1.0; // Cospeciation events are always guaranteed
                     // i.e. occur with equal weight
@@ -128,8 +136,8 @@ public abstract class CophylogenySimulator<T extends AbstractCophylogenyModel> {
 
     protected abstract double
             simulateBirthEvent(final Tree tree,
-                               final double height,
-                               final NodeRef source);
+                               final NodeRef node,
+                               final double height);
 
 
     public CophylogeneticTrajectory createTrajectory() {

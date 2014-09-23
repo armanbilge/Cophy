@@ -58,7 +58,6 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
     final protected TreeParticle[] particles;
     final int particleCount;
 
-    @SuppressWarnings("unchecked")
     public PFCophylogenyLikelihood(final CophylogenySimulator<?> simulator,
                                    final Tree guestTree,
                                    final Reconciliation reconciliation,
@@ -94,7 +93,6 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
         final Queue<Double> speciationsQueue =
                 new LinkedList<Double>(heights2Nodes.descendingKeySet());
 
-        double previousUntil = model.getOriginHeight();
         double logLikelihood = 0.0;
         while (!speciationsQueue.isEmpty()) {
             final double until = speciationsQueue.poll();
@@ -111,8 +109,10 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
 
                     final NodeRef speciatingNodeHost =
                             reconciliation.getHost(speciatingNode);
+                    final NodeRef speciatingParent =
+                            tree.getParent(speciatingNode);
                     final NodeRef completeParent =
-                            particle.getCompleteNode(speciatingNode);
+                            particle.getCompleteNode(speciatingParent);
 
                     final NodeRef head;
                     if (CophyUtils.isLeft(guestTree, speciatingNode))
@@ -135,18 +135,23 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
                                 .equals(speciatingNodeHost))
                             iter.remove();
 
-                        final int size = potentialCompletes.size();
-                        if (size == 0) {
-                            particle.multiplyWeight(0.0);
-                            break;
-                        }
+                     }
 
-                        final NodeRef complete =
-                                CophyUtils.getRandomElement(potentialCompletes);
-
-                        final double w = simulator.s
-
+                    final int size = potentialCompletes.size();
+                    if (size == 0) {
+                        particle.multiplyWeight(0.0);
+                        break;
                     }
+
+                    final NodeRef complete =
+                            CophyUtils.getRandomElement(potentialCompletes);
+                    particle.setCompleteNode(speciatingNode, complete);
+                    final double w =
+                            simulator.simulateSpecationEvent(guestTree,
+                                                             complete,
+                                                             until);
+
+                    particle.multiplyWeight(w);
 
                 }
 
@@ -158,7 +163,91 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
             logLikelihood += Math.log(meanWeight);
 
             CophyUtils.resample(particles);
-            previousUntil = until;
+
+        }
+
+        double totalWeight = 0.0;
+        for (final TreeParticle particle : particles) {
+
+            final Tree tree = particle.getValue();
+            simulator.resumeSimulation(tree, 0.0);
+
+            for (int i = 0; i < tree.getExternalNodeCount(); ++i) {
+
+                final NodeRef leaf = tree.getExternalNode(i);
+                final NodeRef leafParent = tree.getParent(leaf);
+
+                final NodeRef completeParent =
+                        particle.getCompleteNode(leafParent);
+
+                final NodeRef head;
+                if (CophyUtils.isLeft(guestTree, leaf))
+                    head = tree.getChild(completeParent, 0);
+                else
+                    head = tree.getChild(completeParent, 1);
+
+                final Set<NodeRef> potentialCompletes =
+                        new LinkedHashSet<NodeRef>(Tree.Utils
+                                .getExternalNodes(guestTree, head));
+
+                for (final Iterator<NodeRef> iter =
+                        potentialCompletes.iterator();
+                        iter.hasNext();) {
+
+                    final SimpleNode node = (SimpleNode) iter.next();
+                    if (node.getAttribute(CophylogenySimulator.EXTINCT)
+                            == null ||
+                            !node.getAttribute(CophylogenySimulator.HOST)
+                            .equals(leaf))
+                        iter.remove();
+
+                 }
+
+                final int size = potentialCompletes.size();
+                if (size == 0) {
+                    particle.multiplyWeight(0.0);
+                    break;
+                }
+
+            }
+
+            if (particle.getWeight() > 0.0) {
+
+                double rho = 1.0;
+                for (int i = 0; i < hostTree.getExternalNodeCount(); ++i) {
+
+                    final NodeRef host = hostTree.getExternalNode(i);
+                    final double samplingProbability =
+                            model.getSamplingProbability(host);
+
+                    final int completeCount = CophyUtils
+                            .getGuestCountAtHostAtHeight(tree,
+                                                         host,
+                                                         0.0,
+                                                         CophylogenySimulator
+                                                             .HOST);
+                    final int reconstructedCount = CophyUtils
+                            .getGuestCountAtHostAtHeight(guestTree,
+                                                         host,
+                                                         0.0,
+                                                         CophylogenySimulator
+                                                             .HOST);
+
+                    rho *= CophyUtils
+                            .extendedBinomialCoefficient(completeCount,
+                                                         reconstructedCount);
+                    rho *= Math.pow(samplingProbability, reconstructedCount);
+                    rho *= Math.pow(1 - samplingProbability,
+                            completeCount - reconstructedCount);
+
+                }
+
+                particle.multiplyWeight(rho);
+
+            }
+
+            final double meanWeight = totalWeight / particles.length;
+            logLikelihood += Math.log(meanWeight);
 
         }
 
