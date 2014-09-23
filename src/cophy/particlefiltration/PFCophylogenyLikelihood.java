@@ -35,8 +35,9 @@ import cophy.model.AbstractCophylogenyLikelihood;
 import cophy.model.Reconciliation;
 import cophy.particlefiltration.AbstractParticle.TreeParticle;
 import cophy.simulation.CophylogenySimulator;
+import dr.evolution.tree.FlexibleNode;
+import dr.evolution.tree.FlexibleTree;
 import dr.evolution.tree.NodeRef;
-import dr.evolution.tree.SimpleNode;
 import dr.evolution.tree.Tree;
 import dr.xml.AbstractXMLObjectParser;
 import dr.xml.AttributeRule;
@@ -86,7 +87,7 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
         }
 
         for (int i = 0; i < particles.length; ++i) {
-            final Tree tree = simulator.createTree();
+            final FlexibleTree tree = simulator.createTree();
             particles[i] = new TreeParticle(tree);
         }
 
@@ -109,28 +110,34 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
 
                     final NodeRef speciatingNodeHost =
                             reconciliation.getHost(speciatingNode);
-                    final NodeRef speciatingParent =
-                            tree.getParent(speciatingNode);
-                    final NodeRef completeParent =
-                            particle.getCompleteNode(speciatingParent);
 
                     final NodeRef head;
-                    if (CophyUtils.isLeft(guestTree, speciatingNode))
-                        head = tree.getChild(completeParent, 0);
-                    else
-                        head = tree.getChild(completeParent, 1);
+                    if (!guestTree.isRoot(speciatingNode)) {
+                        final NodeRef speciatingParent =
+                                guestTree.getParent(speciatingNode);
+                        final NodeRef completeParent =
+                                particle.getCompleteNode(speciatingParent);
+
+                        if (CophyUtils.isLeft(guestTree, speciatingNode))
+                            head = tree.getChild(completeParent, 0);
+                        else
+                            head = tree.getChild(completeParent, 1);
+                    } else {
+                        head = tree.getRoot();
+                    }
+
 
                     final Set<NodeRef> potentialCompletes =
                             new LinkedHashSet<NodeRef>(Tree.Utils
-                                    .getExternalNodes(guestTree, head));
+                                    .getExternalNodes(tree, head));
 
                     for (final Iterator<NodeRef> iter =
                             potentialCompletes.iterator();
                             iter.hasNext();) {
 
-                        final SimpleNode node = (SimpleNode) iter.next();
+                        final FlexibleNode node = (FlexibleNode) iter.next();
                         if (node.getAttribute(CophylogenySimulator.EXTINCT)
-                                == null ||
+                                != null ||
                                 !node.getAttribute(CophylogenySimulator.HOST)
                                 .equals(speciatingNodeHost))
                             iter.remove();
@@ -147,9 +154,9 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
                             CophyUtils.getRandomElement(potentialCompletes);
                     particle.setCompleteNode(speciatingNode, complete);
                     final double w =
-                            simulator.simulateSpecationEvent(guestTree,
-                                                             complete,
-                                                             until);
+                            simulator.simulateSpeciationEvent(tree,
+                                                              complete,
+                                                              until);
 
                     particle.multiplyWeight(w);
 
@@ -172,10 +179,11 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
             final Tree tree = particle.getValue();
             simulator.resumeSimulation(tree, 0.0);
 
-            for (int i = 0; i < tree.getExternalNodeCount(); ++i) {
+            for (int i = 0; i < guestTree.getExternalNodeCount(); ++i) {
 
-                final NodeRef leaf = tree.getExternalNode(i);
-                final NodeRef leafParent = tree.getParent(leaf);
+                final NodeRef leaf = guestTree.getExternalNode(i);
+                final NodeRef leafParent = guestTree.getParent(leaf);
+                final NodeRef leafHost = reconciliation.getHost(leaf);
 
                 final NodeRef completeParent =
                         particle.getCompleteNode(leafParent);
@@ -188,17 +196,17 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
 
                 final Set<NodeRef> potentialCompletes =
                         new LinkedHashSet<NodeRef>(Tree.Utils
-                                .getExternalNodes(guestTree, head));
+                                .getExternalNodes(tree, head));
 
                 for (final Iterator<NodeRef> iter =
                         potentialCompletes.iterator();
                         iter.hasNext();) {
 
-                    final SimpleNode node = (SimpleNode) iter.next();
+                    final FlexibleNode node = (FlexibleNode) iter.next();
                     if (node.getAttribute(CophylogenySimulator.EXTINCT)
-                            == null ||
+                            != null ||
                             !node.getAttribute(CophylogenySimulator.HOST)
-                            .equals(leaf))
+                            .equals(leafHost))
                         iter.remove();
 
                  }
@@ -240,9 +248,12 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
                     rho *= Math.pow(1 - samplingProbability,
                             completeCount - reconstructedCount);
 
+                    if (rho == 0.0) break;
+
                 }
 
                 particle.multiplyWeight(rho);
+                totalWeight += particle.getWeight();
 
             }
 
