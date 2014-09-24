@@ -24,6 +24,7 @@ package cophy.model;
 import cophy.CophyUtils;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
+import dr.inference.model.CompoundModel;
 import dr.inference.model.Likelihood;
 import dr.inference.model.Model;
 
@@ -37,25 +38,37 @@ public abstract class AbstractCophylogenyLikelihood
 
     private static final long serialVersionUID = -3968617707110378864L;
 
-    final protected AbstractCophylogenyModel model;
+    final protected AbstractCophylogenyModel cophylogenyModel;
     final protected Tree guestTree;
     final protected Tree hostTree;
     final protected Reconciliation reconciliation;
 
-    public AbstractCophylogenyLikelihood(final AbstractCophylogenyModel model,
+    public AbstractCophylogenyLikelihood(final AbstractCophylogenyModel
+                                         cophylogenyModel,
                                          final Tree guestTree,
                                          final Reconciliation reconciliation) {
-        super(model);
-        this.model = model;
+
+        super(new CompoundModel("CophylogenyModel"));
+
+        final CompoundModel compoundModel = (CompoundModel) getModel();
+
+        compoundModel.addModelListener(this);
+
+        compoundModel.addModel(reconciliation);
+
+        this.cophylogenyModel = cophylogenyModel;
+        compoundModel.addModel(cophylogenyModel);
 
         this.guestTree = guestTree;
         if (guestTree instanceof Model)
-            ((Model) guestTree).addModelListener(this);
-
-        this.hostTree = model.getHostTree();
+            compoundModel.addModel((Model) guestTree);
 
         this.reconciliation = reconciliation;
         reconciliation.addModelListener(this);
+
+        // Storing solely for convenience
+        this.hostTree = cophylogenyModel.getHostTree();
+
     }
 
     @Override
@@ -69,7 +82,7 @@ public abstract class AbstractCophylogenyLikelihood
                 guestTree.getNodeHeight(guestTree.getRoot());
         final double hostRootHeight =
                 hostTree.getNodeHeight(hostTree.getRoot());
-        final double originHeight = model.getOriginHeight();
+        final double originHeight = cophylogenyModel.getOriginHeight();
 
         if (guestRootHeight >= originHeight || hostRootHeight >= originHeight)
             return false;

@@ -226,7 +226,7 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
 
                     final NodeRef host = hostTree.getExternalNode(i);
                     final double samplingProbability =
-                            model.getSamplingProbability(host);
+                            cophylogenyModel.getSamplingProbability(host);
 
                     final int completeCount = CophyUtils
                             .getGuestCountAtHostAtHeight(tree,
@@ -253,14 +253,15 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
                 }
 
                 particle.multiplyWeight(rho);
-                totalWeight += particle.getWeight();
 
             }
 
-            final double meanWeight = totalWeight / particles.length;
-            logLikelihood += Math.log(meanWeight);
+            totalWeight += particle.getWeight();
 
         }
+
+        final double meanWeight = totalWeight / particles.length;
+        logLikelihood += Math.log(meanWeight);
 
         return logLikelihood;
     }
