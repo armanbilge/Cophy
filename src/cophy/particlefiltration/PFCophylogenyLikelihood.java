@@ -1,7 +1,7 @@
 /**
  * PFCophylogenyLikelihood.java
  *
- * Cophy: Cophylogenetics for BEAST 2
+ * Cophy: Cophylogenetics for BEAST
  *
  * Copyright (C) 2014 Arman D. Bilge <armanbilge@gmail.com>
  *

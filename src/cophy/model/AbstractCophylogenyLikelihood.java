@@ -25,7 +25,6 @@ import cophy.CophyUtils;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 import dr.inference.model.CompoundModel;
-import dr.inference.model.Likelihood;
 import dr.inference.model.Model;
 
 /**
@@ -33,8 +32,7 @@ import dr.inference.model.Model;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public abstract class AbstractCophylogenyLikelihood
-        extends Likelihood.Abstract {
+public abstract class AbstractCophylogenyLikelihood extends CachingLikelihood {
 
     private static final long serialVersionUID = -3968617707110378864L;
 
@@ -50,7 +48,7 @@ public abstract class AbstractCophylogenyLikelihood
 
         super(new CompoundModel("CophylogenyModel"));
 
-        final CompoundModel compoundModel = (CompoundModel) getModel();
+        final CompoundModel compoundModel = (CompoundModel) getWrappedModel();
 
         compoundModel.addModelListener(this);
 
