@@ -28,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import cophy.model.Reconciliation;
 import cophy.particlefiltration.AbstractParticle;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
@@ -110,6 +111,22 @@ public final class CophyUtils {
         }
         return count;
     }
+
+    public static final int
+            getGuestCountAtHostAtHeight(final Tree guestTree,
+                                        final NodeRef hostNode,
+                                        final double height,
+                                        final Reconciliation reconciliation) {
+        int count = 0;
+        final Set<NodeRef> guestNodes =
+                CophyUtils.getLineagesAtHeight(guestTree, height);
+        for (final NodeRef guestNode : guestNodes) {
+            final NodeRef actualHost = reconciliation.getHost(guestNode);
+            if (hostNode.equals(actualHost)) ++count;
+        }
+        return count;
+    }
+
 
     public static final Set<NodeRef>
             getGuestsAtHostAtHeight(final Tree guestTree,

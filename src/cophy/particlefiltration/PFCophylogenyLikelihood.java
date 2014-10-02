@@ -197,11 +197,12 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
                         .getGuestCountAtHostAtHeight(guestTree,
                                                      host,
                                                      0.0,
-                                                     CophylogenySimulator.HOST);
+                                                     reconciliation);
 
                 rho *= CophyUtils
                         .extendedBinomialCoefficient(completeCount,
                                                      reconstructedCount);
+                if (rho == 0.0) break;
                 rho *= Math.pow(samplingProbability, reconstructedCount);
                 rho *= Math.pow(1 - samplingProbability,
                         completeCount - reconstructedCount);
