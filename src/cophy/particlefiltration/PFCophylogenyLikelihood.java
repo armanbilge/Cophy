@@ -126,7 +126,6 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
                         head = tree.getRoot();
                     }
 
-
                     final Set<NodeRef> potentialCompletes =
                             new LinkedHashSet<NodeRef>(Tree.Utils
                                     .getExternalNodes(tree, head));
@@ -142,7 +141,7 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
                                 .equals(speciatingNodeHost))
                             iter.remove();
 
-                     }
+                    }
 
                     final int size = potentialCompletes.size();
                     if (size == 0) {
@@ -185,18 +184,19 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
             for (int i = 0; i < hostTree.getExternalNodeCount(); ++i) {
 
                 final NodeRef host = hostTree.getExternalNode(i);
+                final double height = hostTree.getNodeHeight(host);
                 final double samplingProbability =
                         cophylogenyModel.getSamplingProbability(host);
 
                 final int completeCount = CophyUtils
                         .getGuestCountAtHostAtHeight(tree,
                                                      host,
-                                                     0.0,
+                                                     height,
                                                      CophylogenySimulator.HOST);
                 final int reconstructedCount = CophyUtils
                         .getGuestCountAtHostAtHeight(guestTree,
                                                      host,
-                                                     0.0,
+                                                     height,
                                                      reconciliation);
 
                 rho *= CophyUtils

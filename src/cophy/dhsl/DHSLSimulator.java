@@ -215,7 +215,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
         simpleNode.insertChild(left, 0);
         simpleNode.insertChild(right, 1);
 
-        return 1.0;
+        return model.getBirthRate();
 
     }
 
