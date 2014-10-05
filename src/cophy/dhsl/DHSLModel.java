@@ -79,11 +79,6 @@ public class DHSLModel extends AbstractCophylogenyModel {
         addVariable(samplingProbabilityParameter);
     }
 
-    @Override
-    public Tree getHostTree() {
-        return hostTree;
-    }
-
     public double getBirthDiffRate() {
         return birthDiffRateParameter.getValue(0);
     }
