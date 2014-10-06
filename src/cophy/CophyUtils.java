@@ -172,7 +172,7 @@ public final class CophyUtils {
                     .MathUtils.binomialCoefficient(n, k);
     }
 
-    public static final <T> T getRandomElement(Collection<T> collection) {
+    public static final <T> T getRandomElement(final Collection<T> collection) {
         int i = 0;
         final int r = MathUtils.nextInt(collection.size());
         for (T element : collection)
