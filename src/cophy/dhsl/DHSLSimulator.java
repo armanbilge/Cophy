@@ -203,17 +203,9 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
             throw new RuntimeException("Undefined event.");
         }
 
-        final FlexibleNode left, right;
-        if (MathUtils.nextBoolean()) {
-            left = child1;
-            right = child2;
-        } else {
-            left = child2;
-            right = child1;
-        }
-
-        simpleNode.insertChild(left, 0);
-        simpleNode.insertChild(right, 1);
+        final int r = MathUtils.nextInt(2);
+        simpleNode.insertChild(child1, r);
+        simpleNode.insertChild(child2, 1-r);
 
         return model.getBirthRate();
 
