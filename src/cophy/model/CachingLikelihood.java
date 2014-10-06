@@ -1,5 +1,5 @@
 /**
- * PFCophylogenyLikelihood.java
+ * CachingLikelihood.java
  *
  * Cophy: Cophylogenetics for BEAST
  *

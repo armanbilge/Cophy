@@ -34,15 +34,15 @@ import dr.evolution.tree.Tree;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public abstract class CophylogenySimulator<T extends AbstractCophylogenyModel> {
+public abstract class CophylogenySimulator<M extends AbstractCophylogenyModel> {
 
     public static final String HOST = "host";
     public static final String EXTINCT = "extinct";
 
-    protected final T model;
+    protected final M model;
     protected final boolean complete;
 
-    public CophylogenySimulator(final T model, final boolean complete) {
+    public CophylogenySimulator(final M model, final boolean complete) {
         this.model = model;
         this.complete = complete;
     }
@@ -93,17 +93,19 @@ public abstract class CophylogenySimulator<T extends AbstractCophylogenyModel> {
     }
 
     protected FlexibleNode simulateSubtree(final NodeRef hostNode,
-            final double height,
-            final double until) {
+                                           final double height,
+                                           final double until) {
 
-        return simulateSubtree(new FlexibleNode(), hostNode, height, until);
+        final FlexibleNode node = new FlexibleNode();
+        simulateSubtree(node, hostNode, height, until);
+        return node;
 
     }
 
-    protected abstract FlexibleNode simulateSubtree(final FlexibleNode guestNode,
-                                                    final NodeRef hostNode,
-                                                    double height,
-                                                    final double until);
+    protected abstract void simulateSubtree(final FlexibleNode guestNode,
+                                            final NodeRef hostNode,
+                                            double height,
+                                            final double until);
 
     public double simulateSpeciationEvent(final Tree tree,
                                           final NodeRef node,
@@ -130,7 +132,7 @@ public abstract class CophylogenySimulator<T extends AbstractCophylogenyModel> {
 
         final MutableTree mutableTree = (MutableTree) tree;
 
-        final NodeRef host = (NodeRef) ((FlexibleNode) node).getAttribute(HOST);
+        final NodeRef host = (NodeRef) tree.getNodeAttribute(node, HOST);
         final FlexibleNode left = new FlexibleNode();
         left.setAttribute(HOST, host);
         mutableTree.addChild(node, left);
@@ -201,7 +203,7 @@ public abstract class CophylogenySimulator<T extends AbstractCophylogenyModel> {
                                final double height,
                                final NodeRef source);
 
-    public T getModel() {
+    public M getModel() {
         return model;
     }
 }
