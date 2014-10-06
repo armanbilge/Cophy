@@ -118,10 +118,10 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
                         final NodeRef completeParent =
                                 particle.getCompleteNode(speciatingParent);
 
-                        if (CophyUtils.isLeft(guestTree, speciatingNode))
-                            head = tree.getChild(completeParent, 0);
-                        else
-                            head = tree.getChild(completeParent, 1);
+                        final int childNumber =
+                                CophyUtils.getChildNumber(guestTree,
+                                                          speciatingNode);
+                        head = tree.getChild(completeParent, childNumber);
                     } else {
                         head = tree.getRoot();
                     }

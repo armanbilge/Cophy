@@ -151,12 +151,16 @@ public final class CophyUtils {
 
     }
 
+    public static final int
+            getChildNumber(final Tree tree, final NodeRef node) {
 
-    public static final boolean isLeft(final Tree tree, final NodeRef node) {
         if (tree.isRoot(node))
             throw new RuntimeException("Root is not a child.");
         final NodeRef parent = tree.getParent(node);
-        return tree.getChild(parent, 0).equals(node);
+        for (int i = 0; i < tree.getChildCount(parent); ++i) {
+            if (tree.getChild(parent, i).equals(node)) return i;
+        }
+        throw new RuntimeException(); // Should never be needed
     }
 
     public static final long
