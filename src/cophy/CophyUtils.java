@@ -208,7 +208,7 @@ public final class CophyUtils {
     }
 
     public static final <T> T
-            nextWeightedObject(Map<T,? extends Number> weights) {
+            nextWeightedObject(final Map<T,? extends Number> weights) {
 
         return new RandomWeightedObject<T>(weights).nextObject();
     }
@@ -246,7 +246,7 @@ public final class CophyUtils {
         return MathUtils.nextExponential(lambda);
     }
 
-    public static final void resample(AbstractParticle<?>[] particles) {
+    public static final void resample(final AbstractParticle<?>[] particles) {
 
         final double[] weights = new double[particles.length];
         final AbstractParticle<?>[] particlesCopy = new AbstractParticle[particles.length];
