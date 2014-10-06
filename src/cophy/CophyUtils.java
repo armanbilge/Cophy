@@ -249,7 +249,8 @@ public final class CophyUtils {
     public static final void resample(final AbstractParticle<?>[] particles) {
 
         final double[] weights = new double[particles.length];
-        final AbstractParticle<?>[] particlesCopy = new AbstractParticle[particles.length];
+        final AbstractParticle<?>[] particlesCopy =
+                new AbstractParticle[particles.length];
 
         for (int i = 0; i < particles.length; ++i) {
             weights[i] = particles[i].getWeight();
