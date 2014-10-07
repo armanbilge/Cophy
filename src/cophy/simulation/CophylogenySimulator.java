@@ -102,10 +102,10 @@ public abstract class CophylogenySimulator<M extends AbstractCophylogenyModel> {
 
     }
 
-    protected abstract void simulateSubtree(final FlexibleNode guestNode,
-                                            final NodeRef hostNode,
-                                            double height,
-                                            final double until);
+    protected abstract FlexibleNode simulateSubtree(final FlexibleNode guestNode,
+                                                    final NodeRef hostNode,
+                                                    double height,
+                                                    final double until);
 
     public double simulateSpeciationEvent(final Tree tree,
                                           final NodeRef node,
