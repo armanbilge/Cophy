@@ -112,8 +112,7 @@ public abstract class CophylogenySimulator<M extends AbstractCophylogenyModel> {
                                           final double height) {
 
         final Tree hostTree = model.getHostTree();
-        final NodeRef hostNode =
-                (NodeRef) ((FlexibleNode) node).getAttribute(HOST);
+        final NodeRef hostNode = (NodeRef) tree.getNodeAttribute(node, HOST);
 
         final double w;
         if (hostTree.getNodeHeight(hostNode) == height) // Cospeciation event
