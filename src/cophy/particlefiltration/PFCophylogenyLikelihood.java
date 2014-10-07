@@ -188,11 +188,8 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
                 final double samplingProbability =
                         cophylogenyModel.getSamplingProbability(host);
 
-                final int completeCount = CophyUtils
-                        .getGuestCountAtHostAtHeight(tree,
-                                                     host,
-                                                     height,
-                                                     CophylogenySimulator.HOST);
+                final int completeCount =
+                        getGuestCountAtHostAtHeight(tree, host, height);
                 final int reconstructedCount = CophyUtils
                         .getGuestCountAtHostAtHeight(guestTree,
                                                      host,
@@ -221,6 +218,23 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
         logLikelihood += Math.log(meanWeight);
 
         return logLikelihood;
+    }
+
+    protected static int getGuestCountAtHostAtHeight(final Tree guestTree,
+                                                     final NodeRef hostNode,
+                                                     final double height) {
+        int count = 0;
+        final Set<NodeRef> guestNodes =
+                CophyUtils.getLineagesAtHeight(guestTree, height);
+        for (final NodeRef guestNode : guestNodes) {
+            final NodeRef actualHost = (NodeRef) guestTree
+                    .getNodeAttribute(guestNode, CophylogenySimulator.HOST);
+            final boolean isExtinct = guestTree
+                    .getNodeAttribute(guestNode, CophylogenySimulator.EXTINCT)
+                    != null;
+            if (hostNode.equals(actualHost) && !isExtinct) ++count;
+        }
+        return count;
     }
 
     public static final AbstractXMLObjectParser PARSER =
