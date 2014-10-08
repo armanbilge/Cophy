@@ -14,6 +14,8 @@
 
     <target name="init">
         <mkdir dir="${build-lib}"/>
+        <get src="http://build.compevol.org/beast/beast.jar"
+             dest="${build-lib}/beast.jar"/>
     </target>
 
     <target name="clean">
@@ -26,7 +28,7 @@
     </target>
 
     <target name="build" depends="clean,compile"/>
-    
+
     <target name="build_jar" depends="clean,compile,dist"/>
 
     <target name="compile" depends="init">
