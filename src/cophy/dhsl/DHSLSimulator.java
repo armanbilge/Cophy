@@ -166,8 +166,9 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
                                      final double height) {
 
         final Tree hostTree = model.getHostTree();
-        final FlexibleNode simpleNode = (FlexibleNode) node;
-        final NodeRef host = (NodeRef) simpleNode.getAttribute(HOST);
+        final FlexibleNode flexibleNode = (FlexibleNode) node;
+        flexibleNode.setHeight(height);
+        final NodeRef host = (NodeRef) flexibleNode.getAttribute(HOST);
 
         final int nextEventType;
         if (CophyUtils.getLineageCountAtHeight(hostTree, height) > 1) {
@@ -212,8 +213,8 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
             right = child1;
         }
 
-        simpleNode.insertChild(left, 0);
-        simpleNode.insertChild(right, 1);
+        flexibleNode.insertChild(left, 0);
+        flexibleNode.insertChild(right, 1);
 
         return model.getBirthRate();
 
