@@ -178,7 +178,7 @@ public final class CophyUtils {
             return 0.0;
         else
             return org.apache.commons.math.util
-                    .MathUtils.binomialCoefficient(n, k);
+                    .MathUtils.binomialCoefficientDouble(n, k);
     }
 
 
