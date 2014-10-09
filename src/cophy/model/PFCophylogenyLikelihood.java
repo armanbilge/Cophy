@@ -1,5 +1,5 @@
 /**
- * AbstractCophylogenyLikelihood.java
+ * PFCophylogenyLikelihood.java
  *
  * Cophy: Cophylogenetics for BEAST
  *
@@ -22,6 +22,7 @@
 package cophy.model;
 
 import cophy.CophyUtils;
+import cophy.particlefiltration.PFLikelihood;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 import dr.inference.model.CompoundModel;
@@ -32,7 +33,7 @@ import dr.inference.model.Model;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public abstract class AbstractCophylogenyLikelihood extends CachingLikelihood {
+public abstract class PFCophylogenyLikelihood extends PFLikelihood {
 
     private static final long serialVersionUID = -3968617707110378864L;
 
@@ -41,10 +42,10 @@ public abstract class AbstractCophylogenyLikelihood extends CachingLikelihood {
     final protected Tree hostTree;
     final protected Reconciliation reconciliation;
 
-    public AbstractCophylogenyLikelihood(final AbstractCophylogenyModel
-                                         cophylogenyModel,
-                                         final Tree guestTree,
-                                         final Reconciliation reconciliation) {
+    public PFCophylogenyLikelihood(final
+                                   AbstractCophylogenyModel cophylogenyModel,
+                                   final Tree guestTree,
+                                   final Reconciliation reconciliation) {
 
         super(new CompoundModel("CophylogenyModel"));
 
@@ -91,8 +92,8 @@ public abstract class AbstractCophylogenyLikelihood extends CachingLikelihood {
             final double height = guestTree.getNodeHeight(guestNode);
             final boolean valid =
                     CophyUtils.lineageExistedAtHeight(hostTree,
-                                                            hostNode,
-                                                            height);
+                                                      hostNode,
+                                                      height);
             if (!valid) return false;
         }
 

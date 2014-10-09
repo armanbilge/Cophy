@@ -26,11 +26,11 @@ import java.util.Set;
 
 import cophy.dhsl.DHSLModel;
 import cophy.dhsl.DHSLSimulator;
+import cophy.model.TreePFCophylogenyLikelihood;
 import cophy.model.Reconciliation;
 import cophy.operation.CospeciationOperator;
 import cophy.operation.HostSwitchOperator;
 import cophy.operation.LeafHostSwitchOperator;
-import cophy.particlefiltration.PFCophylogenyLikelihood;
 import dr.app.plugin.Plugin;
 import dr.xml.XMLObjectParser;
 
@@ -53,7 +53,7 @@ public class Cophy implements Plugin {
         parsers.add(LeafHostSwitchOperator.PARSER);
 
         // Particle Filtration
-        parsers.add(PFCophylogenyLikelihood.PARSER);
+        parsers.add(TreePFCophylogenyLikelihood.PARSER);
 
         // DHSL Model
         parsers.add(DHSLModel.PARSER);

@@ -1,5 +1,5 @@
 /**
- * PFCophylogenyLikelihood.java
+ * TreePFCophylogenyLikelihood.java
  *
  * Cophy: Cophylogenetics for BEAST
  *
@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cophy.particlefiltration;
+package cophy.model;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -31,8 +31,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import cophy.CophyUtils;
-import cophy.model.AbstractCophylogenyLikelihood;
-import cophy.model.Reconciliation;
 import cophy.particlefiltration.AbstractParticle.TreeParticle;
 import cophy.simulation.CophylogenySimulator;
 import dr.evolution.tree.FlexibleNode;
@@ -51,7 +49,7 @@ import dr.xml.XMLSyntaxRule;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
+public class TreePFCophylogenyLikelihood extends PFCophylogenyLikelihood {
 
     private static final long serialVersionUID = -6527862383425163978L;
 
@@ -59,7 +57,7 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
     final protected TreeParticle[] particles;
     final int particleCount;
 
-    public PFCophylogenyLikelihood(final CophylogenySimulator<?> simulator,
+    public TreePFCophylogenyLikelihood(final CophylogenySimulator<?> simulator,
                                    final Tree guestTree,
                                    final Reconciliation reconciliation,
                                    final int particleCount) {
@@ -240,13 +238,13 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
     public static final AbstractXMLObjectParser PARSER =
             new AbstractXMLObjectParser() {
 
-                private static final String PF_COPHYLOGENY_LIKELIHOOD =
-                        "pfCophylogenyLikelihood";
+                private static final String TREE_PF_COPHYLOGENY_LIKELIHOOD =
+                        "treePFCophylogenyLikelihood";
                 private static final String PARTICLE_COUNT = "particleCount";
 
                 @Override
                 public String getParserName() {
-                    return PF_COPHYLOGENY_LIKELIHOOD;
+                    return TREE_PF_COPHYLOGENY_LIKELIHOOD;
                 }
 
                 @Override
@@ -262,7 +260,7 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
                     final int particleCount =
                             xo.getIntegerAttribute(PARTICLE_COUNT);
 
-                    return new PFCophylogenyLikelihood(simulator,
+                    return new TreePFCophylogenyLikelihood(simulator,
                                                        guestTree,
                                                        reconciliation,
                                                        particleCount);
@@ -286,8 +284,8 @@ public class PFCophylogenyLikelihood extends AbstractCophylogenyLikelihood {
                 }
 
                 @Override
-                public Class<PFCophylogenyLikelihood> getReturnType() {
-                    return PFCophylogenyLikelihood.class;
+                public Class<TreePFCophylogenyLikelihood> getReturnType() {
+                    return TreePFCophylogenyLikelihood.class;
                 }
 
     };

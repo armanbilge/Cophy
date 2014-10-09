@@ -1,5 +1,5 @@
 /**
- * CachingLikelihood.java
+ * PFLikelihood.java
  *
  * Cophy: Cophylogenetics for BEAST
  *
@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cophy.model;
+package cophy.particlefiltration;
 
 import dr.inference.model.AbstractModelLikelihood;
 import dr.inference.model.Model;
@@ -31,7 +31,7 @@ import dr.inference.model.Variable.ChangeType;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public abstract class CachingLikelihood extends AbstractModelLikelihood {
+public abstract class PFLikelihood extends AbstractModelLikelihood {
 
     private static final long serialVersionUID = 6497579271787679306L;
 
@@ -42,7 +42,7 @@ public abstract class CachingLikelihood extends AbstractModelLikelihood {
     private boolean likelihoodKnown;
     private boolean storedLikelihoodKnown;
 
-    public CachingLikelihood(final Model model) {
+    public PFLikelihood(final Model model) {
         super("CachingLikelihood");
         this.model = model;
         addModel(model);
@@ -75,6 +75,10 @@ public abstract class CachingLikelihood extends AbstractModelLikelihood {
 
     @Override
     public void makeDirty() {
+        // Do nothing
+    }
+
+    protected void trulyMakeDirty() {
         likelihoodKnown = false;
     }
 
@@ -82,7 +86,7 @@ public abstract class CachingLikelihood extends AbstractModelLikelihood {
     protected void handleModelChangedEvent(final Model model,
                                            final Object object,
                                            final int index) {
-        makeDirty();
+        trulyMakeDirty();
     }
 
     @Override
@@ -90,7 +94,7 @@ public abstract class CachingLikelihood extends AbstractModelLikelihood {
                                               final Variable variable,
                                               final int index,
                                               final ChangeType type) {
-        makeDirty();
+        trulyMakeDirty();
     }
 
     @Override
