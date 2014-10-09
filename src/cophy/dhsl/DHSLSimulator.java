@@ -32,8 +32,8 @@ import cophy.simulation.CophylogeneticEvent.DeathEvent;
 import cophy.simulation.CophylogeneticTrajectory;
 import cophy.simulation.CophylogeneticTrajectoryState;
 import cophy.simulation.CophylogenySimulator;
+import dr.evolution.tree.FlexibleNode;
 import dr.evolution.tree.NodeRef;
-import dr.evolution.tree.SimpleNode;
 import dr.evolution.tree.Tree;
 import dr.math.MathUtils;
 import dr.xml.AbstractXMLObjectParser;
@@ -57,10 +57,10 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
     }
 
     @Override
-    protected SimpleNode simulateSubtree(final SimpleNode guestNode,
-                                         final NodeRef hostNode,
-                                         double height,
-                                         final double until) {
+    protected FlexibleNode simulateSubtree(final FlexibleNode guestNode,
+                                           final NodeRef hostNode,
+                                           double height,
+                                           final double until) {
 
         final Tree hostTree = model.getHostTree();
         final double duplicationRate = model.getDuplicationRate();
@@ -69,21 +69,21 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
         guestNode.setAttribute(HOST, hostNode);
 
-        final SimpleNode left, right;
+        final FlexibleNode left, right;
 
         final int event;
         if (hostTree.isRoot(hostNode)) { // No host-switching at root
             event = CophyUtils.nextWeightedInteger(duplicationRate,
-                                                         lossRate);
+                                                   lossRate);
             height -= CophyUtils.nextPoissonTime(duplicationRate,
-                                                       lossRate);
+                                                 lossRate);
         } else {
             event = CophyUtils.nextWeightedInteger(duplicationRate,
-                                                         lossRate,
-                                                         hostSwitchRate);
+                                                   lossRate,
+                                                   hostSwitchRate);
             height -= CophyUtils.nextPoissonTime(duplicationRate,
-                                                       lossRate,
-                                                       hostSwitchRate);
+                                                 lossRate,
+                                                 hostSwitchRate);
         }
 
         NodeRef leftHost = null;
@@ -151,12 +151,75 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
             }
         }
 
-        guestNode.addChild(left);
-        guestNode.addChild(right);
+        if (left != null) {
+            guestNode.addChild(left);
+            guestNode.addChild(right);
+        }
 
         return guestNode;
 
     }
+
+    @Override
+    public double simulateBirthEvent(final Tree tree,
+                                     final NodeRef node,
+                                     final double height) {
+
+        final Tree hostTree = model.getHostTree();
+        final FlexibleNode flexibleNode = (FlexibleNode) node;
+        flexibleNode.setHeight(height);
+        final NodeRef host = (NodeRef) flexibleNode.getAttribute(HOST);
+
+        final int nextEventType;
+        if (CophyUtils.getLineageCountAtHeight(hostTree, height) > 1) {
+
+            nextEventType = CophyUtils
+                    .nextWeightedInteger(model.getDuplicationProportion(),
+                                         model.getHostSwitchProportion());
+
+        } else { // No host-switching possible
+
+            nextEventType = 0; // Has to be a duplication
+
+        }
+
+        final FlexibleNode child1 = new FlexibleNode();
+        child1.setHeight(height);
+        child1.setAttribute(HOST, host);
+        final FlexibleNode child2 = new FlexibleNode();
+        child2.setHeight(height);
+
+        switch(nextEventType) {
+        case 0: // Duplication event
+            child2.setAttribute(HOST, host);
+            break;
+        case 1: // Host-switch event
+            final Set<NodeRef> potentialHosts =
+                    CophyUtils.getLineagesAtHeight(hostTree, height);
+            potentialHosts.remove(host);
+            final NodeRef newHost =
+                    CophyUtils.getRandomElement(potentialHosts);
+            child2.setAttribute(HOST, newHost);
+        default: // Should not be needed
+            throw new RuntimeException("Undefined event.");
+        }
+
+        final FlexibleNode left, right;
+        if (MathUtils.nextBoolean()) {
+            left = child1;
+            right = child2;
+        } else {
+            left = child2;
+            right = child1;
+        }
+
+        flexibleNode.insertChild(left, 0);
+        flexibleNode.insertChild(right, 1);
+
+        return model.getBirthRate();
+
+    }
+
 
     @Override
     public void resumeSimulation(final CophylogeneticTrajectory trajectory,

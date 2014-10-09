@@ -1,5 +1,5 @@
 /**
- * AbstractCophylogenyLikelihood.java
+ * PFCophylogenyLikelihood.java
  *
  * Cophy: Cophylogenetics for BEAST
  *
@@ -22,9 +22,10 @@
 package cophy.model;
 
 import cophy.CophyUtils;
+import cophy.particlefiltration.PFLikelihood;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
-import dr.inference.model.Likelihood;
+import dr.inference.model.CompoundModel;
 import dr.inference.model.Model;
 
 /**
@@ -32,30 +33,41 @@ import dr.inference.model.Model;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public abstract class AbstractCophylogenyLikelihood
-        extends Likelihood.Abstract {
+public abstract class PFCophylogenyLikelihood extends PFLikelihood {
 
     private static final long serialVersionUID = -3968617707110378864L;
 
-    final protected AbstractCophylogenyModel model;
+    final protected AbstractCophylogenyModel cophylogenyModel;
     final protected Tree guestTree;
     final protected Tree hostTree;
     final protected Reconciliation reconciliation;
 
-    public AbstractCophylogenyLikelihood(final AbstractCophylogenyModel model,
-                                         final Tree guestTree,
-                                         final Reconciliation reconciliation) {
-        super(model);
-        this.model = model;
+    public PFCophylogenyLikelihood(final
+                                   AbstractCophylogenyModel cophylogenyModel,
+                                   final Tree guestTree,
+                                   final Reconciliation reconciliation) {
+
+        super(new CompoundModel("CophylogenyModel"));
+
+        final CompoundModel compoundModel = (CompoundModel) getWrappedModel();
+
+        compoundModel.addModelListener(this);
+
+        compoundModel.addModel(reconciliation);
+
+        this.cophylogenyModel = cophylogenyModel;
+        compoundModel.addModel(cophylogenyModel);
 
         this.guestTree = guestTree;
         if (guestTree instanceof Model)
-            ((Model) guestTree).addModelListener(this);
-
-        this.hostTree = model.getHostTree();
+            compoundModel.addModel((Model) guestTree);
 
         this.reconciliation = reconciliation;
         reconciliation.addModelListener(this);
+
+        // Storing solely for convenience
+        this.hostTree = cophylogenyModel.getHostTree();
+
     }
 
     @Override
@@ -69,7 +81,7 @@ public abstract class AbstractCophylogenyLikelihood
                 guestTree.getNodeHeight(guestTree.getRoot());
         final double hostRootHeight =
                 hostTree.getNodeHeight(hostTree.getRoot());
-        final double originHeight = model.getOriginHeight();
+        final double originHeight = cophylogenyModel.getOriginHeight();
 
         if (guestRootHeight >= originHeight || hostRootHeight >= originHeight)
             return false;
@@ -80,8 +92,8 @@ public abstract class AbstractCophylogenyLikelihood
             final double height = guestTree.getNodeHeight(guestNode);
             final boolean valid =
                     CophyUtils.lineageExistedAtHeight(hostTree,
-                                                            hostNode,
-                                                            height);
+                                                      hostNode,
+                                                      height);
             if (!valid) return false;
         }
 

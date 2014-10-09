@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cophy.particlefiltration;
+package cophy.model;
 
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -29,8 +29,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import cophy.CophyUtils;
-import cophy.model.AbstractCophylogenyLikelihood;
-import cophy.model.Reconciliation;
+import cophy.particlefiltration.AbstractParticle;
 import cophy.particlefiltration.AbstractParticle.Particle;
 import cophy.simulation.CophylogeneticEvent;
 import cophy.simulation.CophylogeneticEvent.SpeciationEvent;
@@ -51,8 +50,7 @@ import dr.xml.XMLSyntaxRule;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public class TrajectoryPFCophylogenyLikelihood
-        extends AbstractCophylogenyLikelihood {
+public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
 
     private static final long serialVersionUID = -6527862383425163978L;
 

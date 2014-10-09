@@ -79,11 +79,6 @@ public class DHSLModel extends AbstractCophylogenyModel {
         addVariable(samplingProbabilityParameter);
     }
 
-    @Override
-    public Tree getHostTree() {
-        return hostTree;
-    }
-
     public double getBirthDiffRate() {
         return birthDiffRateParameter.getValue(0);
     }
@@ -136,7 +131,7 @@ public class DHSLModel extends AbstractCophylogenyModel {
     protected void handleModelChangedEvent(final Model model,
                                            final Object object,
                                            final int index) {
-        this.fireModelChanged();
+        fireModelChanged();
     }
 
     @Override

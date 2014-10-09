@@ -22,8 +22,10 @@
 package cophy.particlefiltration;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
+import dr.evolution.tree.MutableTree;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 
@@ -99,16 +101,45 @@ public abstract class AbstractParticle<T> implements Copyable {
             super(value, weight);
         }
 
-        public void setReconstructedNode(final NodeRef completeNode,
-                                         final NodeRef reconstructedNode) {
-            nodeMap.put(completeNode, reconstructedNode);
-        }
-
         @Override
         public TreeParticle copy() {
-            final TreeParticle copy = new TreeParticle(value.getCopy(), weight);
+
+            final MutableTree treeCopy = (MutableTree) value.getCopy();
+            final TreeParticle copy = new TreeParticle(treeCopy, weight);
+
+            final Iterator<String> treeAttributeNames =
+                    value.getAttributeNames();
+            while (treeAttributeNames != null && treeAttributeNames.hasNext()) {
+                final String name = treeAttributeNames.next();
+                final Object attribute = value.getAttribute(name);
+                treeCopy.setAttribute(name, attribute);
+            }
+
+            for (int i = 0; i < value.getNodeCount(); ++i) {
+                final NodeRef node = value.getNode(i);
+                final NodeRef nodeCopy = copy.getValue().getNode(i);
+                @SuppressWarnings("unchecked")
+                final Iterator<String> nodeAttributeNames =
+                        value.getNodeAttributeNames(node);
+                while (nodeAttributeNames != null
+                        && nodeAttributeNames.hasNext()) {
+                    final String name = nodeAttributeNames.next();
+                    final Object attribute = value.getNodeAttribute(node, name);
+                    treeCopy.setNodeAttribute(nodeCopy, name, attribute);
+                }
+
+            }
             copy.nodeMap.putAll(nodeMap);
             return copy;
+        }
+
+        public NodeRef getCompleteNode(final NodeRef reconstructed) {
+            return nodeMap.get(reconstructed);
+        }
+
+        public void setCompleteNode(final NodeRef reconstructed,
+                                    final NodeRef complete) {
+            nodeMap.put(reconstructed, complete);
         }
 
     }

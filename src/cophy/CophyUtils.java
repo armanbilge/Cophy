@@ -23,6 +23,7 @@ package cophy;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -97,17 +98,69 @@ public final class CophyUtils {
 
     public static final int
             getGuestCountAtHostAtHeight(final Tree guestTree,
-                                        final Reconciliation reconciliation,
                                         final NodeRef hostNode,
-                                        final double height) {
+                                        final double height,
+                                        final String hostTraitName) {
         int count = 0;
         final Set<NodeRef> guestNodes =
                 CophyUtils.getLineagesAtHeight(guestTree, height);
         for (final NodeRef guestNode : guestNodes) {
-            if (hostNode.equals(reconciliation.getHost(guestNode)))
-                ++count;
+            final NodeRef actualHost = (NodeRef) guestTree
+                    .getNodeAttribute(guestNode, hostTraitName);
+            if (hostNode.equals(actualHost)) ++count;
         }
         return count;
+    }
+
+    public static final int
+            getGuestCountAtHostAtHeight(final Tree guestTree,
+                                        final NodeRef hostNode,
+                                        final double height,
+                                        final Reconciliation reconciliation) {
+        int count = 0;
+        final Set<NodeRef> guestNodes =
+                CophyUtils.getLineagesAtHeight(guestTree, height);
+        for (final NodeRef guestNode : guestNodes) {
+            final NodeRef actualHost = reconciliation.getHost(guestNode);
+            if (hostNode.equals(actualHost)) ++count;
+        }
+        return count;
+    }
+
+
+    public static final Set<NodeRef>
+            getGuestsAtHostAtHeight(final Tree guestTree,
+                                    final NodeRef hostNode,
+                                    final double height,
+                                    final String hostTraitName) {
+
+        final Set<NodeRef> guestNodes =
+                CophyUtils.getLineagesAtHeight(guestTree, height);
+        for (final Iterator<NodeRef> iter = guestNodes.iterator();
+             iter.hasNext();) {
+
+            final NodeRef guestNode = iter.next();
+            final NodeRef actualHost = (NodeRef) guestTree
+                    .getNodeAttribute(guestNode, hostTraitName);
+            if (!hostNode.equals(actualHost))
+                iter.remove();
+
+        }
+
+        return guestNodes;
+
+    }
+
+    public static final int
+            getChildNumber(final Tree tree, final NodeRef node) {
+
+        if (tree.isRoot(node))
+            throw new RuntimeException("Root is not a child.");
+        final NodeRef parent = tree.getParent(node);
+        for (int i = 0; i < tree.getChildCount(parent); ++i) {
+            if (tree.getChild(parent, i).equals(node)) return i;
+        }
+        throw new RuntimeException(); // Should never be needed
     }
 
     public static final long
@@ -119,7 +172,7 @@ public final class CophyUtils {
                     .MathUtils.binomialCoefficient(n, k);
     }
 
-    public static final <T> T getRandomElement(Collection<T> collection) {
+    public static final <T> T getRandomElement(final Collection<T> collection) {
         int i = 0;
         final int r = MathUtils.nextInt(collection.size());
         for (T element : collection)
@@ -155,7 +208,7 @@ public final class CophyUtils {
     }
 
     public static final <T> T
-            nextWeightedObject(Map<T,? extends Number> weights) {
+            nextWeightedObject(final Map<T,? extends Number> weights) {
 
         return new RandomWeightedObject<T>(weights).nextObject();
     }
@@ -193,10 +246,11 @@ public final class CophyUtils {
         return MathUtils.nextExponential(lambda);
     }
 
-    public static final void resample(AbstractParticle<?>[] particles) {
+    public static final void resample(final AbstractParticle<?>[] particles) {
 
         final double[] weights = new double[particles.length];
-        final AbstractParticle<?>[] particlesCopy = new AbstractParticle[particles.length];
+        final AbstractParticle<?>[] particlesCopy =
+                new AbstractParticle[particles.length];
 
         for (int i = 0; i < particles.length; ++i) {
             weights[i] = particles[i].getWeight();
