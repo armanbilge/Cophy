@@ -21,7 +21,6 @@
     <target name="clean">
         <delete dir="${build}"/>
         <delete dir="${build-lib}"/>
-        <delete dir="${test}"/>
         <delete dir="${build-test}"/>
         <delete dir="${test-reports}"/>
         <delete dir="${dist}"/>
