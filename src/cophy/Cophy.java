@@ -30,7 +30,7 @@ import cophy.model.Reconciliation;
 import cophy.operation.CospeciationOperator;
 import cophy.operation.HostSwitchOperator;
 import cophy.operation.LeafHostSwitchOperator;
-import cophy.particlefiltration.PFCophylogenyLikelihood;
+import cophy.particlefiltration.TrajectoryPFCophylogenyLikelihood;
 import dr.app.plugin.Plugin;
 import dr.xml.XMLObjectParser;
 
@@ -53,7 +53,7 @@ public class Cophy implements Plugin {
         parsers.add(LeafHostSwitchOperator.PARSER);
 
         // Particle Filtration
-        parsers.add(PFCophylogenyLikelihood.PARSER);
+        parsers.add(TrajectoryPFCophylogenyLikelihood.PARSER);
 
         // DHSL Model
         parsers.add(DHSLModel.PARSER);
