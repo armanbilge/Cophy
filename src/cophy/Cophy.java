@@ -28,6 +28,7 @@ import cophy.dhsl.DHSLModel;
 import cophy.dhsl.DHSLSimulator;
 import cophy.model.Reconciliation;
 import cophy.model.TrajectoryPFCophylogenyLikelihood;
+import cophy.model.TreePFCophylogenyLikelihood;
 import cophy.operation.CospeciationOperator;
 import cophy.operation.HostSwitchOperator;
 import cophy.operation.LeafHostSwitchOperator;

@@ -29,7 +29,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import cophy.CophyUtils;
-import cophy.particlefiltration.AbstractParticle;
 import cophy.particlefiltration.AbstractParticle.Particle;
 import cophy.simulation.CophylogeneticEvent;
 import cophy.simulation.CophylogeneticEvent.SpeciationEvent;
@@ -97,7 +96,7 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
         final Queue<Double> speciationsQueue =
                 new LinkedList<Double>(heights2Nodes.descendingKeySet());
 
-        double previousUntil = model.getOriginHeight();
+        double previousUntil = cophylogenyModel.getOriginHeight();
         double logLikelihood = 0.0;
         while (!speciationsQueue.isEmpty()) {
             final double until = speciationsQueue.poll();
@@ -158,11 +157,11 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
                     final int completeCount = state.getGuestCountAtHost(host);
                     final int reconstructedCount = CophyUtils
                             .getGuestCountAtHostAtHeight(guestTree,
-                                                         reconciliation,
                                                          host,
-                                                         0.0);
+                                                         0.0,
+                                                         reconciliation);
                     final double samplingProbability =
-                            model.getSamplingProbability(host);
+                            cophylogenyModel.getSamplingProbability(host);
                     rho *= CophyUtils
                             .extendedBinomialCoefficient(completeCount,
                                                          reconstructedCount);
