@@ -17,5 +17,5 @@ deploy:
   upload-dir: cophy
   on:
     repo: armanbilge/Cophy
-    java: 1.6.0_30
+    jdk: 6
   skip_cleanup: true
