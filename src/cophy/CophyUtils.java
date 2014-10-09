@@ -69,7 +69,7 @@ public final class CophyUtils {
 
         if (lineageExistedAtHeight(tree, node, height)) {
             lineages.add(node);
-        } else {
+        } else if (!tree.isExternal(node)) {
             getLineagesAtHeight(tree, tree.getChild(node, 0), height, lineages);
             getLineagesAtHeight(tree, tree.getChild(node, 1), height, lineages);
         }
@@ -89,9 +89,11 @@ public final class CophyUtils {
 
         if (lineageExistedAtHeight(tree, node, height)) {
             return 1;
-        } else {
+        } else if (!tree.isExternal(node)) {
             return getLineageCountAtHeight(tree, tree.getChild(node, 0), height)
                 + getLineageCountAtHeight(tree, tree.getChild(node, 1), height);
+        } else {
+            return 0;
         }
 
     }
