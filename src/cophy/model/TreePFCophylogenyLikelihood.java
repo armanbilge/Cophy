@@ -195,8 +195,8 @@ public class TreePFCophylogenyLikelihood extends PFCophylogenyLikelihood {
                                                      reconciliation);
 
                 rho *= CophyUtils
-                        .extendedBinomialCoefficient(completeCount,
-                                                     reconstructedCount);
+                        .extendedBinomialCoefficientDouble(completeCount,
+                                                           reconstructedCount);
                 if (rho == 0.0) break;
                 rho *= Math.pow(samplingProbability, reconstructedCount);
                 rho *= Math.pow(1 - samplingProbability,
