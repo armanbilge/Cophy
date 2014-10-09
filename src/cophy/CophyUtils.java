@@ -163,13 +163,13 @@ public final class CophyUtils {
         throw new RuntimeException(); // Should never be needed
     }
 
-    public static final long
+    public static final double
             extendedBinomialCoefficient(final int n, final int k) {
         if (n >= 0 && n < k)
-            return 0;
+            return 0.0;
         else
             return org.apache.commons.math.util
-                    .MathUtils.binomialCoefficient(n, k);
+                    .MathUtils.binomialCoefficientDouble(n, k);
     }
 
     public static final <T> T getRandomElement(final Collection<T> collection) {
