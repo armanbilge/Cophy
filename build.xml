@@ -16,6 +16,8 @@
         <mkdir dir="${build-lib}"/>
         <get src="http://build.compevol.org/beast/beast.jar"
              dest="${build-lib}/beast.jar"/>
+        <get src="http://search.maven.org/remotecontent?filepath=com/google/guava/guava/18.0/guava-18.0.jar"
+             dest="${build-lib}/guava.jar"/>
     </target>
 
     <target name="clean">
