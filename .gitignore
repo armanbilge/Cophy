@@ -1,7 +1,5 @@
-.classpath
-.project
-.settings/
-bin/
+*.iml
+.idea/
 build/
 build-lib/
 dist/
