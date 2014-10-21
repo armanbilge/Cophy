@@ -21,10 +21,11 @@
 
 package cophy.simulation;
 
-import java.util.Set;
-
 import cophy.particlefiltration.Copyable;
 import dr.evolution.tree.NodeRef;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -33,11 +34,19 @@ import dr.evolution.tree.NodeRef;
  */
 public interface CophylogeneticTrajectoryState extends Copyable {
 
-    public int getGuestCountAtHost(final NodeRef guest, final NodeRef host);
+    public int getGuestCountAtHost(NodeRef guest, NodeRef host);
+
+    public Map<NodeRef,Integer> getGuestCountsAtHost(NodeRef host);
 
     public int getTotalGuestCount();
 
+    public int getGuestCount(NodeRef guest);
+
+    public Map<NodeRef,Integer> getGuestCounts();
+
     public int getHostCount();
+
+    public Set<NodeRef> getGuests();
 
     public Set<NodeRef> getHosts();
 

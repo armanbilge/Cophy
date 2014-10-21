@@ -21,9 +21,6 @@
 
 package cophy.dhsl;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import cophy.CophyUtils;
 import cophy.simulation.CophylogeneticEvent;
 import cophy.simulation.CophylogeneticEvent.BirthEvent;
@@ -42,6 +39,10 @@ import dr.xml.ElementRule;
 import dr.xml.XMLObject;
 import dr.xml.XMLParseException;
 import dr.xml.XMLSyntaxRule;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -282,26 +283,28 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
                 }
 
-                final NodeRef affectedHost = state.getRandomWeightedHost();
+                final Map<NodeRef,Integer> guestCounts = state.getGuestCounts();
+                final NodeRef guest = CophyUtils.nextWeightedObject(guestCounts);
 
                 final CophylogeneticEvent nextEvent;
 
                 switch(nextEventType) {
                 case 0: // Duplication event
+                    final NodeRef host = CophyUtils;
                     nextEvent = new DuplicationEvent(nextEventHeight,
-                                                     affectedHost);
+                                                     host);
                     break;
                 case 1: // Loss event
-                    nextEvent = new LossEvent(nextEventHeight, affectedHost);
+                    nextEvent = new LossEvent(nextEventHeight, host);
                     break;
                 case 2: // Host-switch event
                     final Set<NodeRef> potentialHosts =
                             new HashSet<NodeRef>(state.getHosts());
-                    potentialHosts.remove(affectedHost);
+                    potentialHosts.remove(host);
                     final NodeRef newHost =
                             CophyUtils.getRandomElement(potentialHosts);
                     nextEvent = new HostSwitchEvent(nextEventHeight,
-                                                    affectedHost,
+                                                    host,
                                                     newHost);
                 default: // Should not be needed
                     throw new RuntimeException("Undefined event.");
@@ -321,12 +324,12 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
     @Override
     public double simulateBirthEvent(final CophylogeneticTrajectory trajectory,
                                      final double eventHeight,
-                                     final NodeRef source) {
+                                     final NodeRef guest,
+                                     final NodeRef host) {
 
-        final CophylogeneticTrajectoryState state =
-                trajectory.getStateAtHeight(eventHeight);
+        CophylogeneticTrajectoryState state = trajectory.getCurrentState();
 
-        final int weight = state.getGuestCountAtHost(source);
+        final int weight = state.getGuestCountAtHost(guest, host);
 
         final int nextEventType;
         if (state.getHostCount() > 1) {
@@ -345,20 +348,18 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
         switch(nextEventType) {
         case 0: // Duplication event
-            nextEvent = new DuplicationEvent(eventHeight, source);
+            nextEvent = new DuplicationEvent(eventHeight, guest, host);
             break;
         case 1: // Host-switch event
             final Set<NodeRef> potentialHosts =
                     new HashSet<NodeRef>(state.getHosts());
-            potentialHosts.remove(source);
+            potentialHosts.remove(host);
             final NodeRef newHost =
                     CophyUtils.getRandomElement(potentialHosts);
-            nextEvent = new HostSwitchEvent(eventHeight, source, newHost);
+            nextEvent = new HostSwitchEvent(eventHeight, guest, host, newHost);
         default: // Should not be needed
             throw new RuntimeException("Undefined event.");
         }
-
-        trajectory.addEvent(nextEvent);
 
         return weight;
 
@@ -367,24 +368,26 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
     protected static class DuplicationEvent extends BirthEvent {
         private static final String DUPLICATION_EVENT = "duplicationEvent";
         public DuplicationEvent(final double height,
-                                final NodeRef node) {
-            super(DUPLICATION_EVENT, height, node, node);
+                                final NodeRef guest,
+                                final NodeRef host) {
+            super(DUPLICATION_EVENT, height, guest, host, host);
         }
     }
 
     protected static class HostSwitchEvent extends BirthEvent {
         private static final String HOST_SWITCH_EVENT = "hostSwitchEvent";
         public HostSwitchEvent(final double height,
-                               final NodeRef source,
-                               final NodeRef destination) {
-            super(HOST_SWITCH_EVENT, height, source, destination);
+                               final NodeRef guest,
+                               final NodeRef sourceHost,
+                               final NodeRef destinationHost) {
+            super(HOST_SWITCH_EVENT, height, guest, sourceHost, destinationHost);
         }
     }
 
     protected static class LossEvent extends DeathEvent {
         private static final String LOSS_EVENT = "lossEvent";
-        public LossEvent(final double height, final NodeRef node) {
-            super(LOSS_EVENT, height, node);
+        public LossEvent(final double height, final NodeRef guest, final NodeRef host) {
+            super(LOSS_EVENT, height, guest, host);
         }
     }
 
@@ -392,8 +395,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
             new AbstractXMLObjectParser() {
 
                 private static final String DHSL_SIMULATOR = "dhslSimulator";
-                private static final String COMPLETE_HISTORY =
-                        "completeHistory";
+                private static final String COMPLETE_HISTORY = "completeHistory";
 
                 @Override
                 public String getParserName() {

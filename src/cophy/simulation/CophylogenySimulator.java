@@ -172,24 +172,25 @@ public abstract class CophylogenySimulator<M extends AbstractCophylogenyModel> {
     public double
             simulateSpeciationEvent(final CophylogeneticTrajectory trajectory,
                                     final double height,
-                                    final NodeRef source) {
+                                    final NodeRef guest,
+                                    final NodeRef host) {
 
         final Tree hostTree = model.getHostTree();
-        if (hostTree.getNodeHeight(source) == height) // Cospeciation event
-            return simulateCospeciationEvent(trajectory, height, source);
+        if (hostTree.getNodeHeight(host) == height) // Cospeciation event
+            return simulateCospeciationEvent(trajectory, height, host);
         else // Birth event
-            return simulateBirthEvent(trajectory, height, source);
+            return simulateBirthEvent(trajectory, height, guest, host);
 
     }
 
     protected double
             simulateCospeciationEvent(final CophylogeneticTrajectory trajectory,
                                       final double height,
-                                      final NodeRef source) {
+                                      final NodeRef host) {
 
         final CospeciationEvent event =
                 new CospeciationEvent(model.getHostTree(),
-                                      source,
+                                      host,
                                       height);
         trajectory.addEvent(event);
 
@@ -198,9 +199,10 @@ public abstract class CophylogenySimulator<M extends AbstractCophylogenyModel> {
     }
 
     protected abstract double
-            simulateBirthEvent(final CophylogeneticTrajectory trajectory,
-                               final double height,
-                               final NodeRef source);
+            simulateBirthEvent(CophylogeneticTrajectory trajectory,
+                               double height,
+                               NodeRef guest,
+                               NodeRef host);
 
     public M getModel() {
         return model;

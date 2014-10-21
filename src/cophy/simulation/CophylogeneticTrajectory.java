@@ -21,13 +21,13 @@
 
 package cophy.simulation;
 
-import java.util.Map.Entry;
-import java.util.TreeMap;
-
 import cophy.particlefiltration.Copyable;
 import cophy.simulation.CophylogeneticEvent.CospeciationEvent;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
+
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 /**
  *
@@ -36,14 +36,17 @@ import dr.evolution.tree.Tree;
  */
 public class CophylogeneticTrajectory implements Copyable {
 
+    protected final Tree guestTree;
     protected final Tree hostTree;
-    protected final MutableCophylogeneticTrajectoryState state;
+    protected final SimpleCophylogeneticTrajectoryState state;
     protected final TreeMap<Double,CophylogeneticEvent> events;
 
     public CophylogeneticTrajectory(final double originHeight,
+                                    final Tree guestTree,
                                     final Tree hostTree) {
+        this.guestTree = guestTree;
         this.hostTree = hostTree;
-        state = new MutableCophylogeneticTrajectoryState(originHeight, hostTree);
+        state = new SimpleCophylogeneticTrajectoryState(originHeight, guestTree, hostTree);
         events = new TreeMap<Double,CophylogeneticEvent>();
         for (int i = 0; i < hostTree.getInternalNodeCount(); ++i) {
             final NodeRef node = hostTree.getInternalNode(i);
@@ -112,7 +115,7 @@ public class CophylogeneticTrajectory implements Copyable {
     @Override
     public CophylogeneticTrajectory copy() {
         final CophylogeneticTrajectory copy =
-                new CophylogeneticTrajectory(state.originHeight, hostTree);
+                new CophylogeneticTrajectory(state.originHeight, guestTree, hostTree);
         copy.events.putAll(events);
         return copy;
     }
