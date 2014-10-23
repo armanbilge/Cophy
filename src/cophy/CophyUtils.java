@@ -194,25 +194,22 @@ public final class CophyUtils {
 
     public static class RandomWeightedObject<T> {
 
-        final LinkedHashMap<T,Double> weightsCDF;
+        final Map<T,? extends Number> weights;
         final double sum;
 
         public RandomWeightedObject(Map<T,? extends Number> weights) {
             double sum = 0.0;
-            this.weightsCDF = new LinkedHashMap<T,Double>(weights.size());
-            for (T key : weights.keySet()) {
-                final double weight = weights.get(key).doubleValue();
-                sum += weight;
-                this.weightsCDF.put(key, sum);
-            }
+            for (T key : weights.keySet())
+                sum += weights.get(key).doubleValue();
             this.sum = sum;
+            this.weights = weights;
         }
 
         public final T nextObject() {
-            final double r = (1 - MathUtils.nextDouble()) * sum;
-            for (T key : weightsCDF.keySet()) {
-                if (weightsCDF.get(key) >= r)
-                    return key;
+            double U = MathUtils.nextDouble() * sum;
+            for (T key : weights.keySet()) {
+                U -= weights.get(key).doubleValue();
+                if (U < 0.0) return key;
             }
             throw new RuntimeException();
         }
@@ -227,24 +224,22 @@ public final class CophyUtils {
 
     public static final class RandomWeightedInteger {
 
-        final double[] weightsCDF;
+        final double[] weights;
         final double sum;
 
         public RandomWeightedInteger(final double...weights) {
-            double sum = 0.0;
-            weightsCDF = new double[weights.length];
-            for (int i = 0; i < weights.length; ++i) {
-                sum += weights[i];
-                weightsCDF[i] = sum;
-            }
-            this.sum = sum;
+            sum = MathUtils.getTotal(weights);
+            this.weights = weights;
         }
 
         public final int nextInt() {
-            final double r = (1 - MathUtils.nextDouble()) * sum;
+            double U = MathUtils.nextDouble() * sum;
             int i;
-            for (i = 0; i < weightsCDF.length && weightsCDF[i] < r; ++i);
-            return i;
+            for (i = 0; i < weights.length; ++i) {
+                U -= weights[i];
+                if (U < 0.0) return i;
+            }
+            throw new RuntimeException();
         }
 
     }
