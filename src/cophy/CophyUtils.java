@@ -245,7 +245,7 @@ public final class CophyUtils {
     }
 
     public static final int nextWeightedInteger(final double...weights) {
-        return new RandomWeightedInteger(weights).nextInt();
+        return MathUtils.randomChoice(weights);
     }
 
     public static final double nextPoissonTime(final double...lambdas) {
