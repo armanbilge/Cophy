@@ -24,7 +24,6 @@ package cophy.dhsl;
 import cophy.CophyUtils;
 import cophy.simulation.CophylogeneticEvent;
 import cophy.simulation.CophylogeneticEvent.BirthEvent;
-import cophy.simulation.CophylogeneticEvent.CospeciationEvent;
 import cophy.simulation.CophylogeneticEvent.DeathEvent;
 import cophy.simulation.CophylogeneticTrajectory;
 import cophy.simulation.CophylogeneticTrajectoryState;
@@ -223,101 +222,69 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
 
     @Override
-    public void resumeSimulation(final CophylogeneticTrajectory trajectory,
-                                 final double until) {
+    protected CophylogeneticEvent nextEvent(final CophylogeneticTrajectoryState state) {
 
-        final CophylogeneticTrajectoryState state =
-                trajectory.getCurrentState();
-        while (state.getHeight() > until) {
+        final int guestCount = state.getTotalGuestCount();
+        final double normalizedDuplicationRate = guestCount * model.getDuplicationRate();
+        final double normalizedHostSwitchRate = guestCount * model.getHostSwitchRate();
+        final double normalizedLossRate = guestCount * model.getLossRate();
+        final double nextEventHeight;
 
-            final CospeciationEvent nextCospeciationEvent =
-                    trajectory.getNextCospeciationEvent();
-            final double nextCospeciationEventHeight;
-            if (nextCospeciationEvent != null)
-                nextCospeciationEventHeight = nextCospeciationEvent.getHeight();
-            else
-                nextCospeciationEventHeight = 0.0;
+        if (state.getHostCount() > 1) {
 
-            while (state.getHeight() > until) {
+            nextEventHeight = CophyUtils
+                    .nextPoissonTime(normalizedDuplicationRate,
+                            normalizedLossRate,
+                            normalizedHostSwitchRate);
 
-                final int guestCount = state.getTotalGuestCount();
-                final double normalizedDuplicationRate =
-                        guestCount * model.getDuplicationRate();
-                final double normalizedHostSwitchRate =
-                        guestCount * model.getHostSwitchRate();
-                final double normalizedLossRate =
-                        guestCount * model.getLossRate();
-                final double nextEventHeight;
+        } else { // No host-switching possible
 
-                if (state.getHostCount() > 1) {
-
-                    nextEventHeight = CophyUtils
-                            .nextPoissonTime(normalizedDuplicationRate,
-                                             normalizedLossRate,
-                                             normalizedHostSwitchRate);
-
-                } else { // No host-switching possible
-
-                    nextEventHeight = CophyUtils
-                            .nextPoissonTime(normalizedDuplicationRate,
-                                             normalizedLossRate);
-
-                }
-
-                if (nextEventHeight <= nextCospeciationEventHeight)
-                    break;
-
-                final int nextEventType;
-                if (state.getHostCount() > 1) {
-
-                    nextEventType = CophyUtils
-                            .nextWeightedInteger(normalizedDuplicationRate,
-                                                 normalizedLossRate,
-                                                 normalizedHostSwitchRate);
-
-                } else { // No host-switching possible
-
-                    nextEventType = CophyUtils
-                            .nextWeightedInteger(normalizedDuplicationRate,
-                                                 normalizedLossRate);
-
-                }
-
-                final Map<NodeRef,Integer> guestCounts = state.getGuestCounts();
-                final NodeRef guest = CophyUtils.nextWeightedObject(guestCounts);
-
-                final CophylogeneticEvent nextEvent;
-
-                switch(nextEventType) {
-                case 0: // Duplication event
-                    final NodeRef host = CophyUtils;
-                    nextEvent = new DuplicationEvent(nextEventHeight,
-                                                     host);
-                    break;
-                case 1: // Loss event
-                    nextEvent = new LossEvent(nextEventHeight, host);
-                    break;
-                case 2: // Host-switch event
-                    final Set<NodeRef> potentialHosts =
-                            new HashSet<NodeRef>(state.getHosts());
-                    potentialHosts.remove(host);
-                    final NodeRef newHost =
-                            CophyUtils.getRandomElement(potentialHosts);
-                    nextEvent = new HostSwitchEvent(nextEventHeight,
-                                                    host,
-                                                    newHost);
-                default: // Should not be needed
-                    throw new RuntimeException("Undefined event.");
-                }
-
-                trajectory.addEvent(nextEvent);
-
-            }
-
-            if (nextCospeciationEventHeight > 0.0)
-                trajectory.applyNextCospeciationEvent();
+            nextEventHeight = CophyUtils
+                    .nextPoissonTime(normalizedDuplicationRate,
+                            normalizedLossRate);
 
         }
+
+        final int nextEventType;
+        if (state.getHostCount() > 1) {
+
+            nextEventType = CophyUtils
+                    .nextWeightedInteger(normalizedDuplicationRate,
+                            normalizedLossRate,
+                            normalizedHostSwitchRate);
+
+        } else { // No host-switching possible
+
+            nextEventType = CophyUtils
+                    .nextWeightedInteger(normalizedDuplicationRate,
+                            normalizedLossRate);
+
+        }
+
+        final Map<NodeRef,Integer> guestCounts = state.getGuestCounts();
+        final NodeRef guest = CophyUtils.nextWeightedObject(guestCounts);
+        final NodeRef host = CophyUtils.nextWeightedObject(state.getGuestCountAtHosts(guest));
+
+        final CophylogeneticEvent nextEvent;
+
+
+        switch(nextEventType) {
+            case 0: // Duplication event
+                nextEvent = new DuplicationEvent(nextEventHeight, guest, host);
+                break;
+            case 1: // Loss event
+                nextEvent = new LossEvent(nextEventHeight, guest, host);
+                break;
+            case 2: // Host-switch event
+                final Set<NodeRef> potentialHosts = new HashSet<NodeRef>(state.getHosts());
+                potentialHosts.remove(host);
+                final NodeRef newHost = CophyUtils.getRandomElement(potentialHosts);
+                nextEvent = new HostSwitchEvent(nextEventHeight, guest, host, newHost);
+            default: // Should not be needed
+                throw new RuntimeException("Undefined event.");
+        }
+
+        return nextEvent;
 
     }
 

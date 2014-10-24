@@ -127,14 +127,14 @@ public abstract class CophylogeneticEvent {
     public static class CospeciationEvent extends SpeciationEvent {
 
         private static final String COSPECIATION_EVENT = "cospeciationEvent";
-        protected final Tree tree;
+        protected final Tree hostTree;
         protected final NodeRef host;
 
-        public CospeciationEvent(final Tree tree,
+        public CospeciationEvent(final Tree hostTree,
                                  final NodeRef host,
                                  final double eventHeight) {
             super(COSPECIATION_EVENT, eventHeight);
-            this.tree = tree;
+            this.hostTree = hostTree;
             this.host = host;
         }
 
@@ -142,8 +142,8 @@ public abstract class CophylogeneticEvent {
         public void mutateTrajectory(final MutableCophylogeneticTrajectoryState state) {
             final Map<NodeRef,Integer> guestCounts = state.getGuestCountsAtHost(host);
             state.removeHost(host);
-            final NodeRef left = tree.getChild(host, 0);
-            final NodeRef right = tree.getChild(host, 1);
+            final NodeRef left = hostTree.getChild(host, 0);
+            final NodeRef right = hostTree.getChild(host, 1);
             state.addHost(left);
             state.addHost(right);
             state.setGuestCountsAtHost(left, guestCounts);

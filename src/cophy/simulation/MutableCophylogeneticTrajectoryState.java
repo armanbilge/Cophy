@@ -50,4 +50,6 @@ public interface MutableCophylogeneticTrajectoryState extends CophylogeneticTraj
 
     void removeHost(NodeRef host);
 
+    void applyEvent(CophylogeneticEvent event);
+
 }

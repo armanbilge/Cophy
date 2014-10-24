@@ -90,10 +90,11 @@ public class SimpleCophylogeneticTrajectoryState
         height = originHeight;
     }
 
+    @Override
     public void applyEvent(final CophylogeneticEvent event)
             throws CophylogeneticEventFailedException {
 
-        height = event.getHeight();
+        setHeight(event.getHeight());
         if (height < 0)
             throw new CophylogeneticEventFailedException(event);
 
@@ -121,6 +122,11 @@ public class SimpleCophylogeneticTrajectoryState
     }
 
     @Override
+    public Map<NodeRef,Integer> getGuestCountAtHosts(final NodeRef guest) {
+        return state.row(guest);
+    }
+
+    @Override
     public Map<NodeRef,Integer> getGuestCounts() {
         final Map<NodeRef,Integer> counts = new HashMap<NodeRef, Integer>(getGuests().size());
         for (final NodeRef guest : getGuests())
@@ -133,6 +139,7 @@ public class SimpleCophylogeneticTrajectoryState
         return state.get(guest, host);
     }
 
+    @Override
     public Map<NodeRef,Integer> getGuestCountsAtHost(final NodeRef host) {
         return state.column(host);
     }
@@ -142,6 +149,7 @@ public class SimpleCophylogeneticTrajectoryState
         return state.size();
     }
 
+    @Override
     public Set<NodeRef> getGuests() {
         return state.rowKeySet();
     }
@@ -151,22 +159,26 @@ public class SimpleCophylogeneticTrajectoryState
         return state.columnKeySet();
     }
 
+    @Override
     public void setGuestCountAtHost(final NodeRef guest,
                                     final NodeRef host,
                                     final int guestCount) {
         state.put(guest, host, guestCount);
     }
 
+    @Override
     public void setGuestCountsAtHost(final NodeRef host, final Map<NodeRef,Integer> guestCounts) {
         for (final NodeRef guest : guestCounts.keySet())
             state.put(guest, host, guestCounts.get(guest));
     }
 
+    @Override
     public void incrementGuestCountAtHost(final NodeRef guest,
                                           final NodeRef host) {
         setGuestCountAtHost(guest, host, getGuestCountAtHost(guest, host) + 1);
     }
 
+    @Override
     public void decrementGuestCountAtHost(final NodeRef guest,
                                           final NodeRef host)
             throws CophylogeneticEventFailedException {
@@ -205,6 +217,11 @@ public class SimpleCophylogeneticTrajectoryState
     @Override
     public double getHeight() {
         return height;
+    }
+
+    @Override
+    public void setHeight(final double height) {
+        this.height = height;
     }
 
 }

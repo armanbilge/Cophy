@@ -54,7 +54,7 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
     private static final long serialVersionUID = -6527862383425163978L;
 
     final protected CophylogenySimulator<?> simulator;
-    final protected Particle<CophylogeneticTrajectory>[] particles;
+    final protected Particle<CophylogeneticTrajectoryState>[] particles;
     final int particleCount;
 
     @SuppressWarnings("unchecked")
@@ -88,9 +88,9 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
         }
 
         for (int i = 0; i < particles.length; ++i) {
-            final CophylogeneticTrajectory trajectory =
-                    simulator.createTrajectory();
-            particles[i] = new Particle<CophylogeneticTrajectory>(trajectory);
+            final CophylogeneticTrajectoryState state =
+                    simulator.createTrajectory(guestTree);
+            particles[i] = new Particle<CophylogeneticTrajectoryState>(state);
         }
 
         final Queue<Double> speciationsQueue =
@@ -103,9 +103,9 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
 
             double totalWeight = 0.0;
 
-            for(final Particle<CophylogeneticTrajectory> particle : particles) {
+            for(final Particle<CophylogeneticTrajectoryState> particle : particles) {
 
-                final CophylogeneticTrajectory trajectory = particle.getValue();
+                final CophylogeneticTrajectoryState trajectory = particle.getValue();
                 simulator.resumeSimulation(trajectory, until);
 
                 // Rewind and replay

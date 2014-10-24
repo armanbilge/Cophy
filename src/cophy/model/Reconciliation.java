@@ -94,7 +94,7 @@ public class Reconciliation extends AbstractModel implements TreeTraitProvider {
             public NodeRef getTrait(Tree tree, NodeRef node) {
                 if (tree != guestTree)
                     throw new RuntimeException("Reconciliation " + getId()
-                                               + " can be logged only on tree "
+                                               + " can be logged only on hostTree "
                                                + guestTree.getId() + ".");
                 return getHost(node);
             }

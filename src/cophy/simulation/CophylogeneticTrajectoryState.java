@@ -34,24 +34,25 @@ import java.util.Set;
  */
 public interface CophylogeneticTrajectoryState extends Copyable {
 
-    public int getGuestCountAtHost(NodeRef guest, NodeRef host);
+    int getGuestCountAtHost(NodeRef guest, NodeRef host);
 
-    public Map<NodeRef,Integer> getGuestCountsAtHost(NodeRef host);
+    Map<NodeRef,Integer> getGuestCountsAtHost(NodeRef host);
 
-    public int getTotalGuestCount();
+    int getTotalGuestCount();
 
-    public int getGuestCount(NodeRef guest);
+    int getGuestCount(NodeRef guest);
 
-    public Map<NodeRef,Integer> getGuestCounts();
+    Map<NodeRef,Integer> getGuestCountAtHosts(NodeRef guest);
 
-    public int getHostCount();
+    Map<NodeRef,Integer> getGuestCounts();
 
-    public Set<NodeRef> getGuests();
+    int getHostCount();
 
-    public Set<NodeRef> getHosts();
+    Set<NodeRef> getGuests();
 
-    public double getHeight();
+    Set<NodeRef> getHosts();
 
-    public NodeRef getRandomWeightedHost();
+    double getHeight();
+
 
 }

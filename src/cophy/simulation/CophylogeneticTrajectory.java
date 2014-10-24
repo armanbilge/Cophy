@@ -34,6 +34,7 @@ import java.util.TreeMap;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
+@Deprecated
 public class CophylogeneticTrajectory implements Copyable {
 
     protected final Tree guestTree;
@@ -57,6 +58,10 @@ public class CophylogeneticTrajectory implements Copyable {
 
     public void addEvent(final CophylogeneticEvent event) {
         events.put(event.getHeight(), event);
+    }
+
+    public void addAndApplyEvent(final CophylogeneticEvent event) {
+        addEvent(event);
         state.applyEvent(event);
     }
 
