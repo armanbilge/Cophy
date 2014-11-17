@@ -163,7 +163,7 @@ public abstract class CophylogenySimulator<M extends AbstractCophylogenyModel> {
 
 
     public MutableCophylogeneticTrajectoryState createTrajectory(final Tree guest) {
-        return new SimpleCophylogeneticTrajectoryState(model.getOriginHeight(), guest, model.getHostTree());
+        return new SimpleCophylogeneticTrajectoryState(guest, model);
     }
 
 //    public MutableCophylogeneticTrajectoryState simulateTrajectory(final Tree guest) {
@@ -177,11 +177,11 @@ public abstract class CophylogenySimulator<M extends AbstractCophylogenyModel> {
 //        return trajectory;
 //    }
 
-    public void
-            resumeSimulation(final MutableCophylogeneticTrajectoryState state,
-                             final double until) {
+    public double resumeSimulation(final MutableCophylogeneticTrajectoryState state, final double until) {
 
-        CophylogeneticEvent nextCospeciationEvent = nextCospeciationEvent(state.getHeight());
+        double weight = 1.0;
+
+        CospeciationEvent nextCospeciationEvent = nextCospeciationEvent(state.getHeight());
         while (state.getHeight() > Math.max(until, nextCospeciationEvent.getHeight())) {
 
             final CophylogeneticEvent nextEvent = nextEvent(state);
@@ -197,6 +197,8 @@ public abstract class CophylogenySimulator<M extends AbstractCophylogenyModel> {
             }
 
         }
+
+        return weight;
 
     }
 

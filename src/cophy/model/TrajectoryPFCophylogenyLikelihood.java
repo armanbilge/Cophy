@@ -21,8 +21,10 @@
 
 package cophy.model;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Queue;
 import java.util.Set;
@@ -35,6 +37,8 @@ import cophy.simulation.CophylogeneticEvent.SpeciationEvent;
 import cophy.simulation.CophylogeneticTrajectory;
 import cophy.simulation.CophylogeneticTrajectoryState;
 import cophy.simulation.CophylogenySimulator;
+import cophy.simulation.MutableCophylogeneticTrajectoryState;
+import cophy.simulation.MutableCophylogeneticTrajectoryStateListener;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 import dr.xml.AbstractXMLObjectParser;
@@ -49,13 +53,17 @@ import dr.xml.XMLSyntaxRule;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
+public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood implements MutableCophylogeneticTrajectoryStateListener {
 
     private static final long serialVersionUID = -6527862383425163978L;
 
     final protected CophylogenySimulator<?> simulator;
-    final protected Particle<CophylogeneticTrajectoryState>[] particles;
+    final protected Particle<MutableCophylogeneticTrajectoryState>[] particles;
+    final protected Map<CophylogeneticTrajectoryState,Particle<CophylogeneticTrajectoryState>> states2Particles;
     final int particleCount;
+
+    private boolean listening;
+    private Particle<MutableCophylogeneticTrajectoryState> currentParticle;
 
     @SuppressWarnings("unchecked")
     public TrajectoryPFCophylogenyLikelihood(final
@@ -68,7 +76,13 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
         super(simulator.getModel(), guestTree, reconciliation);
         this.simulator = simulator;
         this.particles = new Particle[particleCount];
+        states2Particles = new HashMap<CophylogeneticTrajectoryState, Particle<CophylogeneticTrajectoryState>>(particleCount);
         this.particleCount = particleCount;
+        for (int i = 0; i < particles.length; ++i) {
+            final MutableCophylogeneticTrajectoryState state = simulator.createTrajectory(guestTree);
+            state.addListener(this);
+            particles[i] = new Particle<MutableCophylogeneticTrajectoryState>(state);
+        }
     }
 
     @Override
@@ -87,11 +101,8 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
             heights2Nodes.get(height).add(node);
         }
 
-        for (int i = 0; i < particles.length; ++i) {
-            final CophylogeneticTrajectoryState state =
-                    simulator.createTrajectory(guestTree);
-            particles[i] = new Particle<CophylogeneticTrajectoryState>(state);
-        }
+        for (int i = 0; i < particles.length; ++i)
+            particles[i].getValue().reset(guestTree, (AbstractCophylogenyModel) getWrappedModel());
 
         final Queue<Double> speciationsQueue =
                 new LinkedList<Double>(heights2Nodes.descendingKeySet());
@@ -103,7 +114,7 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
 
             double totalWeight = 0.0;
 
-            for(final Particle<CophylogeneticTrajectoryState> particle : particles) {
+            for (final Particle<CophylogeneticTrajectoryState> particle : particles) {
 
                 final CophylogeneticTrajectoryState trajectory = particle.getValue();
                 simulator.resumeSimulation(trajectory, until);
@@ -187,6 +198,14 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
         return logLikelihood;
     }
 
+    @Override
+    public void stateChangedEvent(final MutableCophylogeneticTrajectoryState state, final CophylogeneticEvent event) {
+        if (listening && event.isSpeciation()) {
+            final double weight = ((SpeciationEvent) event).getProbabilityUnobserved(state, guestTree, reconciliation);
+            currentParticle.multiplyWeight(weight);
+        }
+    }
+
     public static final AbstractXMLObjectParser PARSER =
             new AbstractXMLObjectParser() {
 
@@ -232,8 +251,7 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
 
                 @Override
                 public String getParserDescription() {
-                    return "Approximates the cophylogenetic likelihood using a"
-                            + " particle filtering method.";
+                    return "Approximates the cophylogenetic likelihood using a particle filter.";
                 }
 
                 @Override

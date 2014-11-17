@@ -24,11 +24,14 @@ package cophy.simulation;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import cophy.CophyUtils;
+import cophy.model.AbstractCophylogenyModel;
 import cophy.simulation.CophylogeneticEvent.CophylogeneticEventFailedException;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
+import dr.inference.model.Model;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,11 +43,10 @@ import java.util.Set;
 public class SimpleCophylogeneticTrajectoryState
         implements MutableCophylogeneticTrajectoryState {
 
-    protected final double originHeight;
-    protected final Tree guestTree;
-    protected final Tree hostTree;
     protected double height;
     protected final Table<NodeRef,NodeRef,Integer> state;
+    private final Set<MutableCophylogeneticTrajectoryStateListener> listeners;
+
 
     static final NodeRef NULL_GUEST = new NodeRef() {
         final private int number = -1;
@@ -58,36 +60,36 @@ public class SimpleCophylogeneticTrajectoryState
         }
     };
 
-    public SimpleCophylogeneticTrajectoryState(final double originHeight,
-                                               final Tree guestTree,
-                                               final Tree hostTree) {
-        this.originHeight = originHeight;
-        this.guestTree = guestTree;
-        this.hostTree = hostTree;
+    public SimpleCophylogeneticTrajectoryState(final Tree guestTree, final AbstractCophylogenyModel model) {
         final int guestLeafCount = guestTree.getExternalNodeCount();
-        final int hostLeafCount = hostTree.getExternalNodeCount();
+        final int hostLeafCount = model.getHostTree().getExternalNodeCount();
         state = HashBasedTable.create(guestLeafCount, hostLeafCount);
-        reset();
+        reset(guestTree, model);
+        listeners = new HashSet<MutableCophylogeneticTrajectoryStateListener>();
+    }
+
+    protected SimpleCophylogeneticTrajectoryState(final double height, final Table<NodeRef,NodeRef,Integer> state, final Set<MutableCophylogeneticTrajectoryStateListener> listeners) {
+        this.height = height;
+        this.state = state;
+        this.listeners = listeners;
     }
 
     @Override
     public Object copy() {
-        final SimpleCophylogeneticTrajectoryState copy =
-                new SimpleCophylogeneticTrajectoryState(originHeight,
-                                                         guestTree,
-                                                         hostTree);
-        copy.height = height;
-        copy.state.putAll(state);
-        return copy;
+        final Table<NodeRef,NodeRef,Integer> stateCopy =
+                HashBasedTable.create(state.rowKeySet().size(), state.columnKeySet().size());
+        stateCopy.putAll(state);
+        return new SimpleCophylogeneticTrajectoryState(height, stateCopy, new HashSet<MutableCophylogeneticTrajectoryStateListener>(listeners));
     }
 
-    public void reset() {
+    @Override
+    public void reset(Tree guestTree, AbstractCophylogenyModel model) {
         state.clear();
         final NodeRef guestRoot = guestTree.getRoot();
-        final NodeRef hostRoot = hostTree.getRoot();
+        final NodeRef hostRoot = model.getHostTree().getRoot();
         setGuestCountAtHost(guestRoot, hostRoot, 1);
         setGuestCountAtHost(NULL_GUEST, hostRoot, 0);
-        height = originHeight;
+        height = model.getOriginHeight();
     }
 
     @Override
@@ -99,11 +101,6 @@ public class SimpleCophylogeneticTrajectoryState
             throw new CophylogeneticEventFailedException(event);
 
         event.apply(this);
-
-        final int lineageCount = CophyUtils
-                .getLineageCountAtHeight(hostTree, height);
-        if (lineageCount != state.size())
-            throw new CophylogeneticEventFailedException(event);
 
     }
 
@@ -222,6 +219,16 @@ public class SimpleCophylogeneticTrajectoryState
     @Override
     public void setHeight(final double height) {
         this.height = height;
+    }
+
+    @Override
+    public void addListener(final MutableCophylogeneticTrajectoryStateListener listener) {
+        listeners.add(listener);
+    }
+
+    @Override
+    public void removeListener(final MutableCophylogeneticTrajectoryStateListener listener) {
+        listeners.remove(listener);
     }
 
 }

@@ -25,9 +25,9 @@ import cophy.CophyUtils;
 import cophy.simulation.CophylogeneticEvent;
 import cophy.simulation.CophylogeneticEvent.BirthEvent;
 import cophy.simulation.CophylogeneticEvent.DeathEvent;
-import cophy.simulation.CophylogeneticTrajectory;
 import cophy.simulation.CophylogeneticTrajectoryState;
 import cophy.simulation.CophylogenySimulator;
+import cophy.simulation.MutableCophylogeneticTrajectoryState;
 import dr.evolution.tree.FlexibleNode;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
@@ -289,12 +289,10 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
     }
 
     @Override
-    public double simulateBirthEvent(final CophylogeneticTrajectory trajectory,
+    public double simulateBirthEvent(final MutableCophylogeneticTrajectoryState state,
                                      final double eventHeight,
                                      final NodeRef guest,
                                      final NodeRef host) {
-
-        CophylogeneticTrajectoryState state = trajectory.getCurrentState();
 
         final int weight = state.getGuestCountAtHost(guest, host);
 
