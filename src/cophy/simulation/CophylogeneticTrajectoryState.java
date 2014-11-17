@@ -54,5 +54,16 @@ public interface CophylogeneticTrajectoryState extends Copyable {
 
     double getHeight();
 
+    static final NodeRef NULL_GUEST = new NodeRef() {
+        final private int number = -1;
+        @Override
+        public int getNumber() {
+            return number;
+        }
+        @Override
+        public void setNumber(int n) {
+            throw new RuntimeException("Cannot set number.");
+        }
+    };
 
 }

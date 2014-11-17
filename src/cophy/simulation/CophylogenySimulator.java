@@ -21,8 +21,10 @@
 
 package cophy.simulation;
 
-import cophy.model.AbstractCophylogenyModel;
+import cophy.model.CophylogenyModel;
+import cophy.simulation.CophylogeneticEvent.BirthEvent;
 import cophy.simulation.CophylogeneticEvent.CospeciationEvent;
+import cophy.simulation.CophylogeneticEvent.SpeciationEvent;
 import dr.evolution.tree.FlexibleNode;
 import dr.evolution.tree.FlexibleTree;
 import dr.evolution.tree.MutableTree;
@@ -37,7 +39,7 @@ import java.util.TreeMap;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public abstract class CophylogenySimulator<M extends AbstractCophylogenyModel> {
+public abstract class CophylogenySimulator<M extends CophylogenyModel> {
 
     public static final String HOST = "host";
     public static final String EXTINCT = "extinct";
@@ -166,17 +168,6 @@ public abstract class CophylogenySimulator<M extends AbstractCophylogenyModel> {
         return new SimpleCophylogeneticTrajectoryState(guest, model);
     }
 
-//    public MutableCophylogeneticTrajectoryState simulateTrajectory(final Tree guest) {
-//        return simulateTrajectory(0.0);
-//    }
-//
-//    public MutableCophylogeneticTrajectoryState simulateTrajectory(final Tree guest, final double until) {
-//
-//        final MutableCophylogeneticTrajectoryState trajectory = createTrajectory(guest);
-//        resumeSimulation(trajectory, until);
-//        return trajectory;
-//    }
-
     public double resumeSimulation(final MutableCophylogeneticTrajectoryState state, final double until) {
 
         double weight = 1.0;
@@ -209,7 +200,7 @@ public abstract class CophylogenySimulator<M extends AbstractCophylogenyModel> {
     }
 
 
-    public double
+    public SpeciationEvent
             simulateSpeciationEvent(final MutableCophylogeneticTrajectoryState state,
                                     final double height,
                                     final NodeRef guest,
@@ -217,13 +208,13 @@ public abstract class CophylogenySimulator<M extends AbstractCophylogenyModel> {
 
         final Tree hostTree = model.getHostTree();
         if (hostTree.getNodeHeight(host) == height) // Cospeciation event
-            return simulateCospeciationEvent(state, height, host);
+            return simulateCospeciationEvent(state, height, guest, host);
         else // Birth event
             return simulateBirthEvent(state, height, guest, host);
 
     }
 
-    protected double
+    protected CospeciationEvent
             simulateCospeciationEvent(final MutableCophylogeneticTrajectoryState state,
                                       final double height,
                                       final NodeRef host) {
@@ -234,11 +225,10 @@ public abstract class CophylogenySimulator<M extends AbstractCophylogenyModel> {
                                       height);
         state.applyEvent(event);
 
-        return 1.0; // Cospeciation events are always guaranteed
-                    // i.e. occur with equal weight
+        return event;
     }
 
-    protected abstract double
+    protected abstract BirthEvent
             simulateBirthEvent(MutableCophylogeneticTrajectoryState state,
                                double height,
                                NodeRef guest,

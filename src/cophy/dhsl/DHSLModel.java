@@ -21,7 +21,7 @@
 
 package cophy.dhsl;
 
-import cophy.model.AbstractCophylogenyModel;
+import cophy.model.CophylogenyModel;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 import dr.evolution.util.Units;
@@ -41,7 +41,7 @@ import dr.xml.XMLSyntaxRule;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public class DHSLModel extends AbstractCophylogenyModel {
+public class DHSLModel extends CophylogenyModel {
 
     private static final long serialVersionUID = 2041282129285374772L;
 

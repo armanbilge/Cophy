@@ -23,12 +23,10 @@ package cophy.simulation;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import cophy.CophyUtils;
-import cophy.model.AbstractCophylogenyModel;
+import cophy.model.CophylogenyModel;
 import cophy.simulation.CophylogeneticEvent.CophylogeneticEventFailedException;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
-import dr.inference.model.Model;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,20 +45,7 @@ public class SimpleCophylogeneticTrajectoryState
     protected final Table<NodeRef,NodeRef,Integer> state;
     private final Set<MutableCophylogeneticTrajectoryStateListener> listeners;
 
-
-    static final NodeRef NULL_GUEST = new NodeRef() {
-        final private int number = -1;
-        @Override
-        public int getNumber() {
-            return number;
-        }
-        @Override
-        public void setNumber(int n) {
-            throw new RuntimeException("Cannot set number.");
-        }
-    };
-
-    public SimpleCophylogeneticTrajectoryState(final Tree guestTree, final AbstractCophylogenyModel model) {
+    public SimpleCophylogeneticTrajectoryState(final Tree guestTree, final CophylogenyModel model) {
         final int guestLeafCount = guestTree.getExternalNodeCount();
         final int hostLeafCount = model.getHostTree().getExternalNodeCount();
         state = HashBasedTable.create(guestLeafCount, hostLeafCount);
@@ -83,7 +68,7 @@ public class SimpleCophylogeneticTrajectoryState
     }
 
     @Override
-    public void reset(Tree guestTree, AbstractCophylogenyModel model) {
+    public void reset(Tree guestTree, CophylogenyModel model) {
         state.clear();
         final NodeRef guestRoot = guestTree.getRoot();
         final NodeRef hostRoot = model.getHostTree().getRoot();

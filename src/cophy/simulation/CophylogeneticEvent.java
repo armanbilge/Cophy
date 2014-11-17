@@ -130,7 +130,8 @@ public abstract class CophylogeneticEvent {
         protected final Tree hostTree;
         protected final NodeRef host;
 
-        public CospeciationEvent(final Tree hostTree,
+        public CospeciationEvent(final 
+                                 final Tree hostTree,
                                  final NodeRef host,
                                  final double eventHeight) {
             super(COSPECIATION_EVENT, eventHeight);

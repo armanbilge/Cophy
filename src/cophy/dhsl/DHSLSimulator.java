@@ -51,9 +51,7 @@ import java.util.Set;
 public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
     public DHSLSimulator(final DHSLModel model, final boolean complete) {
-
         super(model, complete);
-
     }
 
     @Override

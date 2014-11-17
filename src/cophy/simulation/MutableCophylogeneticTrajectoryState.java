@@ -21,7 +21,7 @@
 
 package cophy.simulation;
 
-import cophy.model.AbstractCophylogenyModel;
+import cophy.model.CophylogenyModel;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 
@@ -34,7 +34,7 @@ import java.util.Map;
  */
 public interface MutableCophylogeneticTrajectoryState extends CophylogeneticTrajectoryState {
 
-    void reset(Tree guest, AbstractCophylogenyModel model);
+    void reset(Tree guest, CophylogenyModel model);
 
     void setHeight(double height);
 

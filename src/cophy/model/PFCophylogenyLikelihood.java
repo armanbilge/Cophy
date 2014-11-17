@@ -37,13 +37,13 @@ public abstract class PFCophylogenyLikelihood extends PFLikelihood {
 
     private static final long serialVersionUID = -3968617707110378864L;
 
-    final protected AbstractCophylogenyModel cophylogenyModel;
+    final protected CophylogenyModel cophylogenyModel;
     final protected Tree guestTree;
     final protected Tree hostTree;
     final protected Reconciliation reconciliation;
 
     public PFCophylogenyLikelihood(final
-                                   AbstractCophylogenyModel cophylogenyModel,
+                                   CophylogenyModel cophylogenyModel,
                                    final Tree guestTree,
                                    final Reconciliation reconciliation) {
 
