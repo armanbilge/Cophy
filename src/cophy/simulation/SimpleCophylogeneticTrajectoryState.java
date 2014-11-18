@@ -38,8 +38,7 @@ import java.util.Set;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public class SimpleCophylogeneticTrajectoryState
-        implements MutableCophylogeneticTrajectoryState {
+public class SimpleCophylogeneticTrajectoryState implements MutableCophylogeneticTrajectoryState {
 
     protected double height;
     protected final Table<NodeRef,NodeRef,Integer> state;
@@ -163,11 +162,11 @@ public class SimpleCophylogeneticTrajectoryState
     @Override
     public void decrementGuestCountAtHost(final NodeRef guest,
                                           final NodeRef host)
-            throws CophylogeneticEventFailedException {
+            throws InvalidCophylogeneticTrajectoryStateException {
 
         final int guestCount = getGuestCountAtHost(guest, host) - 1;
         if (guestCount < 0)
-            throw new CophylogeneticEventFailedException();
+            throw new InvalidCophylogeneticTrajectoryStateException("Cannot have a non-positive number of guests.");
         else
             setGuestCountAtHost(guest, host, guestCount);
     }

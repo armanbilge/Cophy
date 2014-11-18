@@ -23,6 +23,7 @@ package cophy.simulation;
 
 import cophy.CophyUtils;
 import cophy.model.Reconciliation;
+import cophy.simulation.MutableCophylogeneticTrajectoryState.InvalidCophylogeneticTrajectoryStateException;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 import org.apache.commons.math.util.MathUtils;
@@ -128,15 +129,23 @@ public abstract class CophylogeneticEvent {
 
         private static final String COSPECIATION_EVENT = "cospeciationEvent";
         protected final Tree hostTree;
+        protected final NodeRef guest;
         protected final NodeRef host;
 
-        public CospeciationEvent(final 
+        public CospeciationEvent(final NodeRef guest,
                                  final Tree hostTree,
                                  final NodeRef host,
                                  final double eventHeight) {
             super(COSPECIATION_EVENT, eventHeight);
             this.hostTree = hostTree;
+            this.guest = guest;
             this.host = host;
+        }
+
+        public CospeciationEvent(final Tree hostTree,
+                                 final NodeRef host,
+                                 final double eventHeight) {
+            this(null, hostTree, host, eventHeight);
         }
 
         @Override
@@ -160,11 +169,7 @@ public abstract class CophylogeneticEvent {
                                                final
                                                Reconciliation reconciliation) {
 
-            final int observedGuestCount = CophyUtils
-                    .getGuestCountAtHostAtHeight(guestTree,
-                                                 host,
-                                                 height,
-                                                 reconciliation);
+            final int observedGuestCount = 1;
             final int completeGuestCount = state.getGuestCountAtHost(host);
             // TODO Replace factorial division with a simplified form for
             // increased numerical stability
@@ -187,9 +192,7 @@ public abstract class CophylogeneticEvent {
                                              Reconciliation reconciliation) {
 
             final int completeGuestCount = state.getGuestCountAtHost(host);
-            final double totalCombinations =
-                    MathUtils.factorialDouble(completeGuestCount);
-
+            final double totalCombinations = MathUtils.factorialDouble(completeGuestCount);
             return 1.0 / totalCombinations;
         }
 
@@ -287,7 +290,7 @@ public abstract class CophylogeneticEvent {
                 throws CophylogeneticEventFailedException {
             try {
                 state.decrementGuestCountAtHost(guest, host);
-            } catch (CophylogeneticEventFailedException e) {
+            } catch (final InvalidCophylogeneticTrajectoryStateException e) {
                 throw new CophylogeneticEventFailedException(this);
             }
         }
@@ -299,12 +302,7 @@ public abstract class CophylogeneticEvent {
 
         private static final long serialVersionUID = -1074026006660524662L;
 
-        public CophylogeneticEventFailedException() {
-            super("Event failed to make valid change to state");
-        }
-
-        public CophylogeneticEventFailedException(final
-                                                  CophylogeneticEvent event) {
+        public CophylogeneticEventFailedException(final CophylogeneticEvent event) {
             super(event.getName() + " failed to make valid change to state");
         }
 

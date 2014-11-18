@@ -60,4 +60,18 @@ public interface MutableCophylogeneticTrajectoryState extends CophylogeneticTraj
 
     void removeListener(MutableCophylogeneticTrajectoryStateListener listener);
 
+    public interface MutableCophylogeneticTrajectoryStateListener {
+
+        void stateChangedEvent(MutableCophylogeneticTrajectoryState state, CophylogeneticEvent event);
+
+    }
+
+    public class InvalidCophylogeneticTrajectoryStateException extends RuntimeException {
+
+        public InvalidCophylogeneticTrajectoryStateException(final String message) {
+            super(message);
+        }
+
+    }
+
 }

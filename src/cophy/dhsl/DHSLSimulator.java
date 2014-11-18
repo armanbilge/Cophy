@@ -287,7 +287,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
     }
 
     @Override
-    public double simulateBirthEvent(final MutableCophylogeneticTrajectoryState state,
+    protected BirthEvent simulateBirthEvent(final MutableCophylogeneticTrajectoryState state,
                                      final double eventHeight,
                                      final NodeRef guest,
                                      final NodeRef host) {
@@ -307,7 +307,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
         }
 
-        final CophylogeneticEvent nextEvent;
+        final BirthEvent nextEvent;
 
         switch(nextEventType) {
         case 0: // Duplication event
@@ -324,7 +324,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
             throw new RuntimeException("Undefined event.");
         }
 
-        return weight;
+        return nextEvent;
 
     }
 
