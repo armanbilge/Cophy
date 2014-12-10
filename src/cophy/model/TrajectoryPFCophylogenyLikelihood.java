@@ -1,9 +1,9 @@
-/**
+/*
  * TrajectoryPFCophylogenyLikelihood.java
  *
- * Cophy: Cophylogenetics for BEAST 2
+ * Cophy: Cophylogenetics for BEAST
  *
- * Copyright (C) 2014 Arman D. Bilge <armanbilge@gmail.com>
+ * Copyright (C) 2014 Arman Bilge <armanbilge@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,11 +34,9 @@ import cophy.CophyUtils;
 import cophy.particlefiltration.AbstractParticle.Particle;
 import cophy.simulation.CophylogeneticEvent;
 import cophy.simulation.CophylogeneticEvent.SpeciationEvent;
-import cophy.simulation.CophylogeneticTrajectory;
 import cophy.simulation.CophylogeneticTrajectoryState;
 import cophy.simulation.CophylogenySimulator;
 import cophy.simulation.MutableCophylogeneticTrajectoryState;
-import cophy.simulation.MutableCophylogeneticTrajectoryStateListener;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 import dr.xml.AbstractXMLObjectParser;
@@ -53,7 +51,7 @@ import dr.xml.XMLSyntaxRule;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood implements MutableCophylogeneticTrajectoryStateListener {
+public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood implements MutableCophylogeneticTrajectoryState.MutableCophylogeneticTrajectoryStateListener {
 
     private static final long serialVersionUID = -6527862383425163978L;
 

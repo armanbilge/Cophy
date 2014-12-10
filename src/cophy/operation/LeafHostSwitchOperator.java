@@ -1,9 +1,9 @@
-/**
+/*
  * LeafHostSwitchOperator.java
  *
  * Cophy: Cophylogenetics for BEAST
  *
- * Copyright (C) 2014 Arman D. Bilge <armanbilge@gmail.com>
+ * Copyright (C) 2014 Arman Bilge <armanbilge@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -122,10 +122,8 @@ public class LeafHostSwitchOperator extends SimpleMCMCOperator {
                 }
 
                 private final XMLSyntaxRule[] rules = {
-                        new ElementRule(GUEST, new XMLSyntaxRule[]{
-                                new ElementRule(Tree.class)}),
-                        new ElementRule(HOST, new XMLSyntaxRule[]{
-                                new ElementRule(Tree.class)}),
+                        new ElementRule(GUEST, Tree.class),
+                        new ElementRule(HOST, Tree.class),
                         new ElementRule(Reconciliation.class),
                         AttributeRule.newDoubleRule(WEIGHT)
                 };

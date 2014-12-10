@@ -1,9 +1,9 @@
-/**
+/*
  * DHSLModel.java
  *
  * Cophy: Cophylogenetics for BEAST
  *
- * Copyright (C) 2014 Arman D. Bilge <armanbilge@gmail.com>
+ * Copyright (C) 2014 Arman Bilge <armanbilge@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -209,18 +209,11 @@ public class DHSLModel extends CophylogenyModel {
 
                 private final XMLSyntaxRule[] rules = {
                         new ElementRule(Tree.class),
-                        new ElementRule(BIRTH_DIFF_RATE, new XMLSyntaxRule[]{
-                                new ElementRule(Parameter.class)}),
-                        new ElementRule(RELATIVE_DEATH_RATE, new XMLSyntaxRule[]{
-                                new ElementRule(Parameter.class)}),
-                        new ElementRule(HOST_SWITCH_PROPORTION,
-                                new XMLSyntaxRule[]{new ElementRule(
-                                        Parameter.class)}),
-                        new ElementRule(ORIGIN_HEIGHT, new XMLSyntaxRule[]{
-                                new ElementRule(Parameter.class)}),
-                        new ElementRule(SAMPLING_PROBABILITY,
-                                new XMLSyntaxRule[]{new ElementRule(
-                                        Parameter.class)}),
+                        new ElementRule(BIRTH_DIFF_RATE, Parameter.class),
+                        new ElementRule(RELATIVE_DEATH_RATE, Parameter.class),
+                        new ElementRule(HOST_SWITCH_PROPORTION, Parameter.class),
+                        new ElementRule(ORIGIN_HEIGHT, Parameter.class),
+                        new ElementRule(SAMPLING_PROBABILITY, Parameter.class),
                         XMLUnits.UNITS_RULE
                 };
                 @Override

@@ -1,9 +1,9 @@
-/**
+/*
  * AbstractParticle.java
  *
  * Cophy: Cophylogenetics for BEAST
  *
- * Copyright (C) 2014 Arman D. Bilge <armanbilge@gmail.com>
+ * Copyright (C) 2014 Arman Bilge <armanbilge@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ import dr.evolution.tree.Tree;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public abstract class AbstractParticle<T> implements Copyable {
+public abstract class AbstractParticle<T> implements Copyable<AbstractParticle<T>> {
 
     protected final T value;
     protected double weight;
@@ -66,7 +66,7 @@ public abstract class AbstractParticle<T> implements Copyable {
     @Override
     public abstract AbstractParticle<T> copy();
 
-    public static class Particle<T extends Copyable>
+    public static class Particle<T extends Copyable<T>>
             extends AbstractParticle<T> {
 
         public Particle(final T value) {
@@ -80,7 +80,7 @@ public abstract class AbstractParticle<T> implements Copyable {
         @SuppressWarnings("unchecked")
         @Override
         public Particle<T> copy() {
-            return new Particle<T>((T) value.copy(), weight);
+            return new Particle<T>(value.copy(), weight);
         }
 
     }
