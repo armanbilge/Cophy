@@ -129,23 +129,14 @@ public abstract class CophylogeneticEvent {
 
         private static final String COSPECIATION_EVENT = "cospeciationEvent";
         protected final Tree hostTree;
-        protected final NodeRef guest;
         protected final NodeRef host;
-
-        public CospeciationEvent(final NodeRef guest,
-                                 final Tree hostTree,
-                                 final NodeRef host,
-                                 final double eventHeight) {
-            super(COSPECIATION_EVENT, eventHeight);
-            this.hostTree = hostTree;
-            this.guest = guest;
-            this.host = host;
-        }
 
         public CospeciationEvent(final Tree hostTree,
                                  final NodeRef host,
                                  final double eventHeight) {
-            this(null, hostTree, host, eventHeight);
+            super(COSPECIATION_EVENT, eventHeight);
+            this.hostTree = hostTree;
+            this.host = host;
         }
 
         @Override

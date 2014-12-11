@@ -26,8 +26,8 @@ package cophy.particlefiltration;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public interface Copyable<T> {
+public interface Copyable {
 
-    public T copy();
+    public Object copy();
 
 }

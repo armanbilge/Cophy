@@ -33,7 +33,7 @@ import dr.evolution.tree.Tree;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public abstract class AbstractParticle<T> implements Copyable<AbstractParticle<T>> {
+public abstract class AbstractParticle<T> implements Copyable {
 
     protected final T value;
     protected double weight;
@@ -66,7 +66,7 @@ public abstract class AbstractParticle<T> implements Copyable<AbstractParticle<T
     @Override
     public abstract AbstractParticle<T> copy();
 
-    public static class Particle<T extends Copyable<T>>
+    public static class Particle<T extends Copyable>
             extends AbstractParticle<T> {
 
         public Particle(final T value) {
@@ -80,7 +80,7 @@ public abstract class AbstractParticle<T> implements Copyable<AbstractParticle<T
         @SuppressWarnings("unchecked")
         @Override
         public Particle<T> copy() {
-            return new Particle<T>(value.copy(), weight);
+            return new Particle<T>((T) value.copy(), weight);
         }
 
     }

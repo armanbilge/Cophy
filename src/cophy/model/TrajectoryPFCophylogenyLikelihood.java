@@ -21,14 +21,7 @@
 
 package cophy.model;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Queue;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 import cophy.CophyUtils;
 import cophy.particlefiltration.AbstractParticle.Particle;
@@ -88,22 +81,32 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood i
 
         if (!isValid()) return Double.NEGATIVE_INFINITY;
 
-        final NavigableMap<Double,Set<NodeRef>> heights2Nodes =
+        final NavigableMap<Double,Set<NodeRef>> heightsToNodes =
                 new TreeMap<Double,Set<NodeRef>>();
 
         for (int i = 0; i < guestTree.getInternalNodeCount(); ++i) {
             final NodeRef node = guestTree.getInternalNode(i);
             final double height = guestTree.getNodeHeight(node);
-            if (!heights2Nodes.containsKey(height))
-                heights2Nodes.put(height, new HashSet<NodeRef>());
-            heights2Nodes.get(height).add(node);
+            if (!heightsToNodes.containsKey(height))
+                heightsToNodes.put(height, new HashSet<NodeRef>());
+            final Set<NodeRef> representatives = heightsToNodes.get(height);
+            final NodeRef host = reconciliation.getHost(node);
+            boolean represented = false;
+            for (final NodeRef rep : representatives) {
+                if (reconciliation.getHost(rep).equals(host)) {
+                    represented = true;
+                    break;
+                }
+            }
+            if (!represented)
+                heightsToNodes.get(height).add(node);
         }
 
         for (int i = 0; i < particles.length; ++i)
             particles[i].getValue().reset(guestTree, cophylogenyModel);
 
         final Queue<Double> speciationsQueue =
-                new LinkedList<Double>(heights2Nodes.descendingKeySet());
+                new LinkedList<Double>(heightsToNodes.descendingKeySet());
 
         double logLikelihood = 0.0;
         while (!speciationsQueue.isEmpty()) {
@@ -119,19 +122,14 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood i
                 simulator.resumeSimulation(trajectory, until);
                 listening = false;
 
-                final Set<NodeRef> speciatingNodes = heights2Nodes.get(until);
+                final Set<NodeRef> speciatingNodes = heightsToNodes.get(until);
                 for (final NodeRef speciatingNode : speciatingNodes) {
 
-                    final NodeRef speciatingNodeHost =
-                            reconciliation.getHost(speciatingNode);
-                    double p = simulator.simulateSpeciationEvent(trajectory, speciatingNode, until);
+                    final NodeRef speciatingNodeHost = reconciliation.getHost(speciatingNode);
+                    final SpeciationEvent event = simulator.simulateSpeciationEvent(trajectory, until, speciatingNode, speciatingNodeHost);
                     particle.multiplyWeight(p);
 
-                    final SpeciationEvent event =
-                            (SpeciationEvent) trajectory.getLastEvent();
-                    final CophylogeneticTrajectoryState state =
-                            trajectory.getCurrentState();
-                    p = event.getProbabilityObserved(state,
+                    p = event.getProbabilityObserved(trajectory,
                                                      guestTree,
                                                      reconciliation);
                     particle.multiplyWeight(p);
