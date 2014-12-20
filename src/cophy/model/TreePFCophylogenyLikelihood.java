@@ -21,22 +21,12 @@
 
 package cophy.model;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.NavigableMap;
-import java.util.Queue;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 import cophy.CophyUtils;
-import cophy.particlefiltration.AbstractParticle.TreeParticle;
+import cophy.particlefiltration.AbstractParticle;
 import cophy.simulation.CophylogenySimulator;
-import dr.evolution.tree.FlexibleNode;
-import dr.evolution.tree.FlexibleTree;
-import dr.evolution.tree.NodeRef;
-import dr.evolution.tree.Tree;
+import dr.evolution.tree.*;
 import dr.xml.AbstractXMLObjectParser;
 import dr.xml.AttributeRule;
 import dr.xml.ElementRule;
@@ -233,6 +223,65 @@ public class TreePFCophylogenyLikelihood extends PFCophylogenyLikelihood {
             if (hostNode.equals(actualHost) && !isExtinct) ++count;
         }
         return count;
+    }
+
+    private static class TreeParticle extends AbstractParticle<Tree> {
+
+        protected final Map<NodeRef,NodeRef> nodeMap;
+
+        {
+            nodeMap = new HashMap<NodeRef,NodeRef>();
+        }
+
+        public TreeParticle(final Tree value) {
+            super(value);
+        }
+
+        public TreeParticle(final Tree value, final double weight) {
+            super(value, weight);
+        }
+
+        @Override
+        public TreeParticle copy() {
+
+            final MutableTree treeCopy = (MutableTree) value.getCopy();
+            final TreeParticle copy = new TreeParticle(treeCopy, weight);
+
+            final Iterator<String> treeAttributeNames =
+                    value.getAttributeNames();
+            while (treeAttributeNames != null && treeAttributeNames.hasNext()) {
+                final String name = treeAttributeNames.next();
+                final Object attribute = value.getAttribute(name);
+                treeCopy.setAttribute(name, attribute);
+            }
+
+            for (int i = 0; i < value.getNodeCount(); ++i) {
+                final NodeRef node = value.getNode(i);
+                final NodeRef nodeCopy = copy.getValue().getNode(i);
+                @SuppressWarnings("unchecked")
+                final Iterator<String> nodeAttributeNames =
+                        value.getNodeAttributeNames(node);
+                while (nodeAttributeNames != null
+                        && nodeAttributeNames.hasNext()) {
+                    final String name = nodeAttributeNames.next();
+                    final Object attribute = value.getNodeAttribute(node, name);
+                    treeCopy.setNodeAttribute(nodeCopy, name, attribute);
+                }
+
+            }
+            copy.nodeMap.putAll(nodeMap);
+            return copy;
+        }
+
+        public NodeRef getCompleteNode(final NodeRef reconstructed) {
+            return nodeMap.get(reconstructed);
+        }
+
+        public void setCompleteNode(final NodeRef reconstructed,
+                                    final NodeRef complete) {
+            nodeMap.put(reconstructed, complete);
+        }
+
     }
 
     public static final AbstractXMLObjectParser PARSER =
