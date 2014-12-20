@@ -24,7 +24,7 @@ package cophy.model;
 import java.util.*;
 
 import cophy.CophyUtils;
-import cophy.particlefiltration.AbstractParticle.Particle;
+import cophy.particlefiltration.AbstractParticle;
 import cophy.simulation.CophylogeneticEvent;
 import cophy.simulation.CophylogeneticEvent.SpeciationEvent;
 import cophy.simulation.CophylogeneticTrajectoryState;
@@ -44,17 +44,13 @@ import dr.xml.XMLSyntaxRule;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood implements MutableCophylogeneticTrajectoryState.MutableCophylogeneticTrajectoryStateListener {
+public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
 
     private static final long serialVersionUID = -6527862383425163978L;
 
     final protected CophylogenySimulator<?> simulator;
-    final protected Particle<MutableCophylogeneticTrajectoryState>[] particles;
-    final protected Map<CophylogeneticTrajectoryState,Particle<CophylogeneticTrajectoryState>> states2Particles;
+    final protected TrajectoryParticle[] particles;
     final int particleCount;
-
-    private boolean listening;
-    private Particle<MutableCophylogeneticTrajectoryState> currentParticle;
 
     @SuppressWarnings("unchecked")
     public TrajectoryPFCophylogenyLikelihood(final
@@ -66,13 +62,11 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood i
 
         super(simulator.getModel(), guestTree, reconciliation);
         this.simulator = simulator;
-        this.particles = new Particle[particleCount];
-        states2Particles = new HashMap<CophylogeneticTrajectoryState, Particle<CophylogeneticTrajectoryState>>(particleCount);
+        this.particles = new TrajectoryParticle[particleCount];
         this.particleCount = particleCount;
         for (int i = 0; i < particles.length; ++i) {
             final MutableCophylogeneticTrajectoryState state = simulator.createTrajectory(guestTree);
-            state.addListener(this);
-            particles[i] = new Particle<MutableCophylogeneticTrajectoryState>(state);
+            particles[i] = new TrajectoryParticle(state);
         }
     }
 
@@ -102,8 +96,8 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood i
                 heightsToNodes.get(height).add(node);
         }
 
-        for (int i = 0; i < particles.length; ++i)
-            particles[i].getValue().reset(guestTree, cophylogenyModel);
+        for (final TrajectoryParticle particle : particles)
+            particle.getValue().reset(guestTree, cophylogenyModel);
 
         final Queue<Double> speciationsQueue =
                 new LinkedList<Double>(heightsToNodes.descendingKeySet());
@@ -114,27 +108,21 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood i
 
             double totalWeight = 0.0;
 
-            for (final Particle<MutableCophylogeneticTrajectoryState> particle : particles) {
+            for (final TrajectoryParticle particle : particles) {
 
-                currentParticle = particle;
                 final MutableCophylogeneticTrajectoryState trajectory = particle.getValue();
-                listening = true;
+                particle.setListening(true);
                 simulator.resumeSimulation(trajectory, until);
-                listening = false;
+                particle.setListening(false);
 
                 final Set<NodeRef> speciatingNodes = heightsToNodes.get(until);
                 for (final NodeRef speciatingNode : speciatingNodes) {
 
                     final NodeRef speciatingNodeHost = reconciliation.getHost(speciatingNode);
                     final SpeciationEvent event = simulator.simulateSpeciationEvent(trajectory, until, speciatingNode, speciatingNodeHost);
-                    particle.multiplyWeight(p);
 
-                    p = event.getProbabilityObserved(trajectory,
-                                                     guestTree,
-                                                     reconciliation);
+                    final double p = event.getProbabilityObserved(trajectory, guestTree, reconciliation);
                     particle.multiplyWeight(p);
-
-                    // TODO Proper handling of weights for multiple nodes
 
                 }
 
@@ -171,12 +159,38 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood i
         return logLikelihood;
     }
 
-    @Override
-    public void stateChangedEvent(final MutableCophylogeneticTrajectoryState state, final CophylogeneticEvent event) {
-        if (listening && event.isSpeciation()) {
-            final double weight = ((SpeciationEvent) event).getProbabilityUnobserved(state, guestTree, reconciliation);
-            currentParticle.multiplyWeight(weight);
+    private final class TrajectoryParticle extends AbstractParticle<MutableCophylogeneticTrajectoryState> implements MutableCophylogeneticTrajectoryState.MutableCophylogeneticTrajectoryStateListener {
+
+        private boolean listening = false;
+
+        public TrajectoryParticle(final MutableCophylogeneticTrajectoryState state) {
+            this(state, 1.0);
         }
+
+        protected TrajectoryParticle(final MutableCophylogeneticTrajectoryState state, final double weight) {
+            super(state, weight);
+            state.addListener(this);
+        }
+
+        @Override
+        public TrajectoryParticle copy() {
+            return new TrajectoryParticle(getValue(), getWeight());
+        }
+
+        @Override
+        public void stateChangedEvent(final MutableCophylogeneticTrajectoryState state, final CophylogeneticEvent event) {
+            if (isListening() && event instanceof SpeciationEvent)
+                multiplyWeight(((SpeciationEvent) event).getProbabilityUnobserved(state, guestTree, reconciliation));
+        }
+
+        public final boolean isListening() {
+            return listening;
+        }
+
+        public final void setListening(final boolean listening) {
+            this.listening = listening;
+        }
+
     }
 
     public static final AbstractXMLObjectParser PARSER =

@@ -244,27 +244,29 @@ public class TreePFCophylogenyLikelihood extends PFCophylogenyLikelihood {
         @Override
         public TreeParticle copy() {
 
-            final MutableTree treeCopy = (MutableTree) value.getCopy();
-            final TreeParticle copy = new TreeParticle(treeCopy, weight);
+            final Tree tree = getValue();
+
+            final MutableTree treeCopy = (MutableTree) tree.getCopy();
+            final TreeParticle copy = new TreeParticle(treeCopy, getWeight());
 
             final Iterator<String> treeAttributeNames =
-                    value.getAttributeNames();
+                    tree.getAttributeNames();
             while (treeAttributeNames != null && treeAttributeNames.hasNext()) {
                 final String name = treeAttributeNames.next();
-                final Object attribute = value.getAttribute(name);
+                final Object attribute = tree.getAttribute(name);
                 treeCopy.setAttribute(name, attribute);
             }
 
-            for (int i = 0; i < value.getNodeCount(); ++i) {
-                final NodeRef node = value.getNode(i);
+            for (int i = 0; i < tree.getNodeCount(); ++i) {
+                final NodeRef node = tree.getNode(i);
                 final NodeRef nodeCopy = copy.getValue().getNode(i);
                 @SuppressWarnings("unchecked")
                 final Iterator<String> nodeAttributeNames =
-                        value.getNodeAttributeNames(node);
+                        tree.getNodeAttributeNames(node);
                 while (nodeAttributeNames != null
                         && nodeAttributeNames.hasNext()) {
                     final String name = nodeAttributeNames.next();
-                    final Object attribute = value.getNodeAttribute(node, name);
+                    final Object attribute = tree.getNodeAttribute(node, name);
                     treeCopy.setNodeAttribute(nodeCopy, name, attribute);
                 }
 

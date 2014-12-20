@@ -35,14 +35,14 @@ import dr.evolution.tree.Tree;
  */
 public abstract class AbstractParticle<T> implements Copyable {
 
-    protected final T value;
-    protected double weight;
+    private final T value;
+    private double weight;
 
-    public AbstractParticle(final T value) {
+    protected AbstractParticle(final T value) {
         this(value, 1.0);
     }
 
-    public AbstractParticle(final T value, final double weight) {
+    protected AbstractParticle(final T value, final double weight) {
         this.value = value;
         this.weight = weight;
     }
@@ -73,14 +73,14 @@ public abstract class AbstractParticle<T> implements Copyable {
             super(value);
         }
 
-        public Particle(final T value, final double weight) {
+        private Particle(final T value, final double weight) {
             super(value, weight);
         }
 
         @SuppressWarnings("unchecked")
         @Override
         public Particle<T> copy() {
-            return new Particle<T>((T) value.copy(), weight);
+            return new Particle<T>((T) getValue().copy(), getWeight());
         }
 
     }
