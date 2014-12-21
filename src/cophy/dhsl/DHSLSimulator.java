@@ -278,6 +278,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
                 potentialHosts.remove(host);
                 final NodeRef newHost = CophyUtils.getRandomElement(potentialHosts);
                 nextEvent = new HostSwitchEvent(nextEventHeight, guest, host, newHost);
+                break;
             default: // Should not be needed
                 throw new RuntimeException("Undefined event.");
         }
@@ -320,6 +321,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
             final NodeRef newHost =
                     CophyUtils.getRandomElement(potentialHosts);
             nextEvent = new HostSwitchEvent(eventHeight, guest, host, newHost);
+            break;
         default: // Should not be needed
             throw new RuntimeException("Undefined event.");
         }

@@ -28,6 +28,7 @@ import cophy.simulation.CophylogeneticEvent.SpeciationEvent;
 import dr.evolution.tree.FlexibleNode;
 import dr.evolution.tree.FlexibleTree;
 import dr.evolution.tree.MutableTree;
+import dr.evolution.tree.MutableTreeListener;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 
@@ -54,6 +55,20 @@ public abstract class CophylogenySimulator<M extends CophylogenyModel> {
         this.complete = complete;
         final Tree hostTree = model.getHostTree();
         cospeciationEvents = new TreeMap<Double, CospeciationEvent>();
+        resetCospeciationEvents();
+        if (hostTree instanceof MutableTree) {
+            ((MutableTree) hostTree).addMutableTreeListener(new MutableTreeListener() {
+                @Override
+                public void treeChanged(final Tree hostTree) {
+                    resetCospeciationEvents();
+                }
+            });
+        }
+    }
+
+    protected void resetCospeciationEvents() {
+        cospeciationEvents.clear();
+        final Tree hostTree = model.getHostTree();
         for (int i = 0; i < hostTree.getInternalNodeCount(); ++i) {
             final NodeRef node = hostTree.getInternalNode(i);
             final double height = hostTree.getNodeHeight(node);
