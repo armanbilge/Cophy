@@ -1,5 +1,6 @@
 *.iml
 .idea/
+.ant-targets-build.xml
 build/
-build-lib/
+lib/
 dist/
