@@ -80,11 +80,11 @@ public class DHSLModel extends CophylogenyModel {
     }
 
     public double getBirthDiffRate() {
-        return birthDiffRateParameter.getValue(0);
+        return birthDiffRateParameter.getParameterValue(0);
     }
 
     public double getRelativeDeathRate() {
-        return relativeDeathRateParameter.getValue(0);
+        return relativeDeathRateParameter.getParameterValue(0);
     }
 
     public double getDuplicationProportion() {
@@ -92,7 +92,7 @@ public class DHSLModel extends CophylogenyModel {
     }
 
     public double getHostSwitchProportion() {
-        return hostSwitchProportionParameter.getValue(0);
+        return hostSwitchProportionParameter.getParameterValue(0);
     }
 
     public double getBirthRate() {
@@ -124,7 +124,7 @@ public class DHSLModel extends CophylogenyModel {
 
     @Override
     public double getOriginHeight() {
-        return originHeightParameter.getValue(0);
+        return originHeightParameter.getParameterValue(0);
     }
 
     @Override

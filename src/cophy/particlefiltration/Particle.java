@@ -21,28 +21,22 @@
 
 package cophy.particlefiltration;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
-import dr.evolution.tree.MutableTree;
-import dr.evolution.tree.NodeRef;
-import dr.evolution.tree.Tree;
+import cophy.CophyUtils.RandomWeightedInteger;
 
 /**
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public abstract class AbstractParticle<T> implements Copyable {
+public class Particle<T extends Copyable> implements Copyable {
 
     private final T value;
     private double weight;
 
-    protected AbstractParticle(final T value) {
+    protected Particle(final T value) {
         this(value, 1.0);
     }
 
-    protected AbstractParticle(final T value, final double weight) {
+    protected Particle(final T value, final double weight) {
         this.value = value;
         this.weight = weight;
     }
@@ -64,23 +58,24 @@ public abstract class AbstractParticle<T> implements Copyable {
     }
 
     @Override
-    public abstract AbstractParticle<T> copy();
+    public Particle<T> copy() {
+        return new Particle<T>((T) value.copy());
+    }
 
-    public static class Particle<T extends Copyable>
-            extends AbstractParticle<T> {
+    public static void resample(final Particle<?>[] particles) {
 
-        public Particle(final T value) {
-            super(value);
+        final double[] weights = new double[particles.length];
+        final Particle<?>[] particlesCopy = new Particle[particles.length];
+
+        for (int i = 0; i < particles.length; ++i) {
+            weights[i] = particles[i].getWeight();
+            particlesCopy[i] = particles[i];
         }
 
-        private Particle(final T value, final double weight) {
-            super(value, weight);
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public Particle<T> copy() {
-            return new Particle<T>((T) getValue().copy(), getWeight());
+        final RandomWeightedInteger rwi = new RandomWeightedInteger(weights);
+        for (int i = 0; i < particles.length; ++i) {
+            final int r = rwi.nextInt();
+            particles[i] = particlesCopy[r].copy();
         }
 
     }

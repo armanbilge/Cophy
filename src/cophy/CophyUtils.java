@@ -21,18 +21,12 @@
 
 package cophy;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-
 import cophy.model.Reconciliation;
-import cophy.particlefiltration.AbstractParticle;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 import dr.math.MathUtils;
+
+import java.util.*;
 
 /**
  *
@@ -252,26 +246,5 @@ public final class CophyUtils {
         final double lambda = MathUtils.getTotal(lambdas);
         return MathUtils.nextExponential(lambda);
     }
-
-    public static final void resample(final AbstractParticle<?>[] particles) {
-
-        final double[] weights = new double[particles.length];
-        final AbstractParticle<?>[] particlesCopy =
-                new AbstractParticle[particles.length];
-
-        for (int i = 0; i < particles.length; ++i) {
-            weights[i] = particles[i].getWeight();
-            particlesCopy[i] = particles[i];
-        }
-
-        final RandomWeightedInteger rwi = new RandomWeightedInteger(weights);
-        for (int i = 0; i < particles.length; ++i) {
-            final int r = rwi.nextInt();
-            particles[i] = particlesCopy[r].copy();
-        }
-
-
-    }
-
 
 }

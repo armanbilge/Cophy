@@ -28,6 +28,6 @@ package cophy.particlefiltration;
  */
 public interface Copyable {
 
-    public Object copy();
+    Object copy();
 
 }

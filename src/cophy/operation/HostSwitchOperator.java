@@ -21,8 +21,6 @@
 
 package cophy.operation;
 
-import java.util.Set;
-
 import cophy.CophyUtils;
 import cophy.model.Reconciliation;
 import dr.evolution.tree.MutableTree;
@@ -32,12 +30,9 @@ import dr.inference.model.Parameter;
 import dr.inference.operators.OperatorFailedException;
 import dr.inference.operators.SimpleMCMCOperator;
 import dr.math.MathUtils;
-import dr.xml.AbstractXMLObjectParser;
-import dr.xml.AttributeRule;
-import dr.xml.ElementRule;
-import dr.xml.XMLObject;
-import dr.xml.XMLParseException;
-import dr.xml.XMLSyntaxRule;
+import dr.xml.*;
+
+import java.util.Set;
 
 /**
  *
@@ -162,7 +157,7 @@ public class HostSwitchOperator extends SimpleMCMCOperator {
 
                 @Override
                 public String getParserDescription() {
-                    return "An operator that adds/removes cospeciation events.";
+                    return "An operator that switches the hosts of guests.";
                 }
 
                 @Override

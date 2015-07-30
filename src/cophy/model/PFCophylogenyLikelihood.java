@@ -37,10 +37,10 @@ public abstract class PFCophylogenyLikelihood extends PFLikelihood {
 
     private static final long serialVersionUID = -3968617707110378864L;
 
-    final protected CophylogenyModel cophylogenyModel;
-    final protected Tree guestTree;
-    final protected Tree hostTree;
-    final protected Reconciliation reconciliation;
+    protected final CophylogenyModel cophylogenyModel;
+    protected final Tree guestTree;
+    protected final Tree hostTree;
+    protected final Reconciliation reconciliation;
 
     public PFCophylogenyLikelihood(final
                                    CophylogenyModel cophylogenyModel,
@@ -71,11 +71,21 @@ public abstract class PFCophylogenyLikelihood extends PFLikelihood {
     }
 
     @Override
-    public boolean evaluateEarly() {
+    public final boolean evaluateEarly() {
         return true;
     }
 
-    protected boolean isValid() {
+    @Override
+    public final double calculateLogLikelihood() {
+        if (isValid())
+            return calculateValidLogLikelihood();
+        else
+            return Double.NEGATIVE_INFINITY;
+    }
+
+    protected abstract double calculateValidLogLikelihood();
+
+    private boolean isValid() {
 
         final double guestRootHeight =
                 guestTree.getNodeHeight(guestTree.getRoot());

@@ -24,12 +24,9 @@ package cophy.model;
 import java.util.*;
 
 import cophy.CophyUtils;
-import cophy.particlefiltration.AbstractParticle;
-import cophy.simulation.CophylogeneticEvent;
 import cophy.simulation.CophylogeneticEvent.SpeciationEvent;
 import cophy.simulation.CophylogeneticTrajectoryState;
 import cophy.simulation.CophylogenySimulator;
-import cophy.simulation.MutableCophylogeneticTrajectoryState;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 import dr.xml.AbstractXMLObjectParser;
@@ -44,21 +41,21 @@ import dr.xml.XMLSyntaxRule;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
+public class CophylogenyLikelihood extends PFCophylogenyLikelihood {
 
     private static final long serialVersionUID = -6527862383425163978L;
 
     final protected CophylogenySimulator<?> simulator;
-    final protected TrajectoryParticle[] particles;
+    final protected Particle<CophylogeneticTrajectoryState>[] particles;
     final int particleCount;
 
     @SuppressWarnings("unchecked")
-    public TrajectoryPFCophylogenyLikelihood(final
-                                             CophylogenySimulator<?> simulator,
-                                             final Tree guestTree,
-                                             final
-                                             Reconciliation reconciliation,
-                                             final int particleCount) {
+    public CophylogenyLikelihood(final
+                                 CophylogenySimulator<?> simulator,
+                                 final Tree guestTree,
+                                 final
+                                 Reconciliation reconciliation,
+                                 final int particleCount) {
 
         super(simulator.getModel(), guestTree, reconciliation);
         this.simulator = simulator;
@@ -71,9 +68,7 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
     }
 
     @Override
-    protected double calculateLogLikelihood() {
-
-        if (!isValid()) return Double.NEGATIVE_INFINITY;
+    protected double calculateValidLogLikelihood() {
 
         final NavigableMap<Double,Set<NodeRef>> heightsToNodes =
                 new TreeMap<Double,Set<NodeRef>>();
@@ -159,40 +154,6 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
         return logLikelihood;
     }
 
-    private final class TrajectoryParticle extends AbstractParticle<MutableCophylogeneticTrajectoryState> implements MutableCophylogeneticTrajectoryState.MutableCophylogeneticTrajectoryStateListener {
-
-        private boolean listening = false;
-
-        public TrajectoryParticle(final MutableCophylogeneticTrajectoryState state) {
-            this(state, 1.0);
-        }
-
-        protected TrajectoryParticle(final MutableCophylogeneticTrajectoryState state, final double weight) {
-            super(state, weight);
-            state.addListener(this);
-        }
-
-        @Override
-        public TrajectoryParticle copy() {
-            return new TrajectoryParticle(getValue(), getWeight());
-        }
-
-        @Override
-        public void stateChangedEvent(final MutableCophylogeneticTrajectoryState state, final CophylogeneticEvent event) {
-            if (isListening() && event instanceof SpeciationEvent)
-                multiplyWeight(((SpeciationEvent) event).getProbabilityUnobserved(state, guestTree, reconciliation));
-        }
-
-        public final boolean isListening() {
-            return listening;
-        }
-
-        public final void setListening(final boolean listening) {
-            this.listening = listening;
-        }
-
-    }
-
     public static final AbstractXMLObjectParser PARSER =
             new AbstractXMLObjectParser() {
 
@@ -219,7 +180,7 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
                     final int particleCount =
                             xo.getIntegerAttribute(PARTICLE_COUNT);
 
-                    return new TrajectoryPFCophylogenyLikelihood(simulator,
+                    return new CophylogenyLikelihood(simulator,
                                                        guestTree,
                                                        reconciliation,
                                                        particleCount);
@@ -242,9 +203,9 @@ public class TrajectoryPFCophylogenyLikelihood extends PFCophylogenyLikelihood {
                 }
 
                 @Override
-                public Class<TrajectoryPFCophylogenyLikelihood>
+                public Class<CophylogenyLikelihood>
                         getReturnType() {
-                    return TrajectoryPFCophylogenyLikelihood.class;
+                    return CophylogenyLikelihood.class;
                 }
 
     };

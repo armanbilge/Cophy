@@ -134,7 +134,7 @@ public class LeafHostSwitchOperator extends SimpleMCMCOperator {
 
                 @Override
                 public String getParserDescription() {
-                    return "An operator that adds/removes cospeciation events.";
+                    return "An operator that switches the hosts of guests.";
                 }
 
                 @Override

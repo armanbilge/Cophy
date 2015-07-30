@@ -27,7 +27,6 @@ import cophy.simulation.CophylogeneticEvent.BirthEvent;
 import cophy.simulation.CophylogeneticEvent.DeathEvent;
 import cophy.simulation.CophylogeneticTrajectoryState;
 import cophy.simulation.CophylogenySimulator;
-import cophy.simulation.MutableCophylogeneticTrajectoryState;
 import dr.evolution.tree.FlexibleNode;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
@@ -222,7 +221,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
     @Override
     protected CophylogeneticEvent nextEvent(final CophylogeneticTrajectoryState state) {
 
-        final int guestCount = state.getTotalGuestCount();
+        final int guestCount = state.getGuestCount();
         final double normalizedDuplicationRate = guestCount * model.getDuplicationRate();
         final double normalizedHostSwitchRate = guestCount * model.getHostSwitchRate();
         final double normalizedLossRate = guestCount * model.getLossRate();

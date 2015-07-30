@@ -21,19 +21,18 @@
 
 package cophy;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import cophy.dhsl.DHSLModel;
 import cophy.dhsl.DHSLSimulator;
 import cophy.model.Reconciliation;
-import cophy.model.TrajectoryPFCophylogenyLikelihood;
-import cophy.model.TreePFCophylogenyLikelihood;
+import cophy.model.CophylogenyLikelihood;
 import cophy.operation.CospeciationOperator;
 import cophy.operation.HostSwitchOperator;
 import cophy.operation.LeafHostSwitchOperator;
 import dr.app.plugin.Plugin;
 import dr.xml.XMLObjectParser;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Arman D. Bilge <armanbilge@gmail.com>
@@ -54,8 +53,7 @@ public class Cophy implements Plugin {
         parsers.add(LeafHostSwitchOperator.PARSER);
 
         // Particle Filtration
-        parsers.add(TrajectoryPFCophylogenyLikelihood.PARSER);
-        parsers.add(TreePFCophylogenyLikelihood.PARSER);
+        parsers.add(CophylogenyLikelihood.PARSER);
 
         // DHSL Model
         parsers.add(DHSLModel.PARSER);

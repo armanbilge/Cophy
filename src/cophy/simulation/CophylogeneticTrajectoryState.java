@@ -24,6 +24,8 @@ package cophy.simulation;
 import cophy.particlefiltration.Copyable;
 import dr.evolution.tree.NodeRef;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,38 +34,77 @@ import java.util.Set;
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public interface CophylogeneticTrajectoryState extends Copyable {
+public class CophylogeneticTrajectoryState implements Copyable {
 
-    int getGuestCountAtHost(NodeRef guest, NodeRef host);
+    private Map<NodeRef,Integer> guestCounts;
+    private int guestCount;
+    private Map<NodeRef,NodeRef> guestLineageHosts;
+    private double height;
 
-    Map<NodeRef,Integer> getGuestCountsAtHost(NodeRef host);
+    public CophylogeneticTrajectoryState(final double origin) {
 
-    int getTotalGuestCount();
+    }
 
-    int getGuestCount(NodeRef guest);
+    public double getHeight() {
+        return height;
+    }
 
-    Map<NodeRef,Integer> getGuestCountAtHosts(NodeRef guest);
+    public void setHeight(final double height) {
+        this.height = height;
+    }
 
-    Map<NodeRef,Integer> getGuestCounts();
+    public void forwardTime(final double time) {
+        height -= time;
+    }
 
-    int getHostCount();
+    public int getGuestCount() {
+        return guestCount;
+    }
 
-    Set<NodeRef> getGuests();
+    public int getGuestCount(final NodeRef host) {
+        return guestCounts.containsKey(host) ? guestCounts.get(host) : 0;
+    }
 
-    Set<NodeRef> getHosts();
+    public void setGuestCount(final NodeRef host, final int count) {
+        guestCounts.put(host, count);
+        guestCount += count;
+    }
 
-    double getHeight();
+    public void removeGuests(final NodeRef host) {
+        guestCount -= guestCounts.get(host);
+        guestCounts.remove(host);
+    }
 
-    static final NodeRef NULL_GUEST = new NodeRef() {
-        final private int number = -1;
-        @Override
-        public int getNumber() {
-            return number;
+    public void increment(final NodeRef host) {
+        final int n = getGuestCount(host);
+        guestCounts.put(host, n+1);
+        ++guestCount;
+    }
+
+    public void decrement(final NodeRef host) {
+        final int n = getGuestCount(host);
+        if (n == 0)
+            throw new InvalidTrajectoryException("Cannot have a negative number of guests.");
+        guestCounts.put(host, n - 1);
+        --guestCount;
+    }
+
+    public Set<NodeRef> getGuestLineages(final NodeRef host) {
+        final Set<NodeRef> lineages = new HashSet<NodeRef>();
+        for (final Map.Entry<NodeRef,NodeRef> entry : guestLineageHosts.entrySet()) {
+            if (entry.getValue().equals(host))
+                lineages.add(entry.getKey());
         }
-        @Override
-        public void setNumber(int n) {
-            throw new RuntimeException("Cannot set number.");
-        }
-    };
+        return lineages;
+    }
+
+    @Override
+    public CophylogeneticTrajectoryState copy() {
+        final CophylogeneticTrajectoryState copy = new CophylogeneticTrajectoryState(height);
+        copy.guestCounts = new HashMap<NodeRef, Integer>(guestCounts);
+        copy.guestCount = guestCount;
+        copy.guestLineageHosts = new HashMap<NodeRef, NodeRef>(guestLineageHosts);
+        return copy;
+    }
 
 }
