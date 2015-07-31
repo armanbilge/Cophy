@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package cophy.simulation;
+package cophy.model;
 
 /**
  * @author Arman Bilge

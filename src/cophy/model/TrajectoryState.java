@@ -19,31 +19,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package cophy.simulation;
+package cophy.model;
 
 import cophy.particlefiltration.Copyable;
 import dr.evolution.tree.NodeRef;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  *
  * @author Arman D. Bilge <armanbilge@gmail.com>
  *
  */
-public class CophylogeneticTrajectoryState implements Copyable {
+public class TrajectoryState implements Copyable {
 
     private Map<NodeRef,Integer> guestCounts;
     private int guestCount;
     private Map<NodeRef,NodeRef> guestLineageHosts;
     private double height;
 
-    public CophylogeneticTrajectoryState(final double origin) {
-
+    public TrajectoryState(final double origin, final NodeRef guest, final NodeRef host) {
+        setHeight(origin);
+        increment(host);
+        setGuestLineageHost(guest, host);
     }
+
+    private TrajectoryState() {}
 
     public double getHeight() {
         return height;
@@ -57,8 +58,20 @@ public class CophylogeneticTrajectoryState implements Copyable {
         height -= time;
     }
 
+    public int getHostCount() {
+        return guestCounts.size();
+    }
+
+    public Set<NodeRef> getHosts() {
+        return guestCounts.keySet();
+    }
+
     public int getGuestCount() {
         return guestCount;
+    }
+
+    public Map<NodeRef,Integer> getGuestCounts() {
+        return Collections.unmodifiableMap(guestCounts);
     }
 
     public int getGuestCount(final NodeRef host) {
@@ -70,9 +83,11 @@ public class CophylogeneticTrajectoryState implements Copyable {
         guestCount += count;
     }
 
-    public void removeGuests(final NodeRef host) {
-        guestCount -= guestCounts.get(host);
+    public int removeGuests(final NodeRef host) {
+        final int n = getGuestCount(host);
+        guestCount -= n;
         guestCounts.remove(host);
+        return n;
     }
 
     public void increment(final NodeRef host) {
@@ -89,6 +104,15 @@ public class CophylogeneticTrajectoryState implements Copyable {
         --guestCount;
     }
 
+    public int getGuestLineageCount(final NodeRef host) {
+        int count = 0;
+        for (final Map.Entry<NodeRef,NodeRef> entry : guestLineageHosts.entrySet()) {
+            if (entry.getValue().equals(host))
+                ++count;
+        }
+        return count;
+    }
+
     public Set<NodeRef> getGuestLineages(final NodeRef host) {
         final Set<NodeRef> lineages = new HashSet<NodeRef>();
         for (final Map.Entry<NodeRef,NodeRef> entry : guestLineageHosts.entrySet()) {
@@ -98,12 +122,17 @@ public class CophylogeneticTrajectoryState implements Copyable {
         return lineages;
     }
 
+    public void setGuestLineageHost(final NodeRef guest, final NodeRef host) {
+        guestLineageHosts.put(guest, host);
+    }
+
     @Override
-    public CophylogeneticTrajectoryState copy() {
-        final CophylogeneticTrajectoryState copy = new CophylogeneticTrajectoryState(height);
-        copy.guestCounts = new HashMap<NodeRef, Integer>(guestCounts);
+    public TrajectoryState copy() {
+        final TrajectoryState copy = new TrajectoryState();
+        copy.guestCounts = new HashMap<NodeRef,Integer>(guestCounts);
         copy.guestCount = guestCount;
-        copy.guestLineageHosts = new HashMap<NodeRef, NodeRef>(guestLineageHosts);
+        copy.guestLineageHosts = new HashMap<NodeRef,NodeRef>(guestLineageHosts);
+        copy.height = height;
         return copy;
     }
 

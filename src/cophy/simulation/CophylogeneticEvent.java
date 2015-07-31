@@ -22,13 +22,11 @@
 package cophy.simulation;
 
 import cophy.CophyUtils;
-import cophy.model.Reconciliation;
-import cophy.simulation.MutableCophylogeneticTrajectoryState.InvalidCophylogeneticTrajectoryStateException;
+import cophy.model.TrajectoryState;
 import dr.evolution.tree.NodeRef;
-import dr.evolution.tree.Tree;
-import org.apache.commons.math.util.MathUtils;
+import dr.math.MathUtils;
 
-import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -37,39 +35,37 @@ import java.util.Map;
  */
 public abstract class CophylogeneticEvent {
 
-    protected final String name;
-    protected final double height;
+    private final String name;
+    private final double waitingTime;
 
-    public CophylogeneticEvent(final String name,
-                               final double height) {
+    public CophylogeneticEvent(final String name, final double waitingTime) {
         this.name = name;
-        this.height = height;
+        this.waitingTime = waitingTime;
     }
 
     public String getName() {
         return name;
     }
 
-    public double getHeight() {
-        return height;
-    }
-
     public boolean isSpeciation() {
         return false;
     }
 
-    public final void apply(final MutableCophylogeneticTrajectoryState state) throws CophylogeneticEventFailedException {
-        state.setHeight(height);
-        mutateTrajectory(state);
+    public double getWaitingTime() {
+        return waitingTime;
     }
 
-    protected abstract void mutateTrajectory(MutableCophylogeneticTrajectoryState state)
-            throws CophylogeneticEventFailedException;
+    public final double apply(final TrajectoryState state) {
+        state.forwardTime(waitingTime);
+        return mutateTrajectory(state);
+    }
+
+    protected abstract double mutateTrajectory(TrajectoryState state);
 
     public static abstract class SpeciationEvent extends CophylogeneticEvent {
 
-        public SpeciationEvent(String eventName, double eventHeight) {
-            super(eventName, eventHeight);
+        public SpeciationEvent(String eventName, double waitingTime) {
+            super(eventName, waitingTime);
         }
 
         @Override
@@ -77,131 +73,52 @@ public abstract class CophylogeneticEvent {
             return true;
         }
 
-        public final double
-                getProbabilityUnobserved(final
-                                         CophylogeneticTrajectoryState state,
-                                         final Tree guestTree,
-                                         final Reconciliation reconciliation) {
-
-            if (state.getHeight() != height)
-                throw new RuntimeException("State incompatible with event.");
-
-            return calculateProbabilityUnobserved(state,
-                                                  guestTree,
-                                                  reconciliation);
-        }
-
-        protected abstract double
-                calculateProbabilityUnobserved(final
-                                               CophylogeneticTrajectoryState
-                                               state,
-                                               final Tree guestTree,
-                                               final
-                                               Reconciliation reconciliation);
-
-        public final double
-                getProbabilityObserved(final
-                                       CophylogeneticTrajectoryState state,
-                                       final Tree guestTree,
-                                       final Reconciliation reconciliation) {
-
-            if (state.getHeight() != height)
-                throw new RuntimeException("State incompatible with event.");
-
-            return calculateProbabilityObserved(state,
-                                                guestTree,
-                                                reconciliation);
-
-}
-
-        protected abstract double
-                calculateProbabilityObserved(final
-                                             CophylogeneticTrajectoryState
-                                             state,
-                                             final Tree guestTree,
-                                             final
-                                             Reconciliation reconciliation);
-
-
     }
 
     public static class CospeciationEvent extends SpeciationEvent {
 
         private static final String COSPECIATION_EVENT = "cospeciationEvent";
-        protected final Tree hostTree;
-        protected final NodeRef host;
+        private final NodeRef host;
+        private final NodeRef leftChild;
+        private final NodeRef rightChild;
+        private final double height;
 
-        public CospeciationEvent(final Tree hostTree,
-                                 final NodeRef host,
-                                 final double eventHeight) {
-            super(COSPECIATION_EVENT, eventHeight);
-            this.hostTree = hostTree;
+        public CospeciationEvent(final NodeRef host, final NodeRef leftChild, final NodeRef rightChild, final double height) {
+            super(COSPECIATION_EVENT, 0.0);
             this.host = host;
+            this.leftChild = leftChild;
+            this.rightChild = rightChild;
+            this.height = height;
         }
 
         @Override
-        public void mutateTrajectory(final MutableCophylogeneticTrajectoryState state) {
-            final Map<NodeRef,Integer> guestCounts = state.getGuestCountsAtHost(host);
-            state.removeHost(host);
-            final NodeRef left = hostTree.getChild(host, 0);
-            final NodeRef right = hostTree.getChild(host, 1);
-            state.addHost(left);
-            state.addHost(right);
-            state.setGuestCountsAtHost(left, guestCounts);
-            state.setGuestCountsAtHost(right, guestCounts);
+        public double mutateTrajectory(final TrajectoryState state) {
+            state.setHeight(height);
+            final Set<NodeRef> lineages = state.getGuestLineages(host);
+            final int n = state.removeGuests(host);
+            state.setGuestCount(leftChild, n);
+            state.setGuestCount(rightChild, n);
+            for (final NodeRef lineage : lineages)
+                state.setGuestLineageHost(lineage, MathUtils.nextBoolean() ? leftChild : rightChild);
+            return 1L << lineages.size(); // Premature optimization is the root of all evil!
         }
 
-        @Override
-        protected double
-                calculateProbabilityUnobserved(final
-                                               CophylogeneticTrajectoryState
-                                               state,
-                                               final Tree guestTree,
-                                               final
-                                               Reconciliation reconciliation) {
-
-            final int observedGuestCount = 1;
-            final int completeGuestCount = state.getGuestCountAtHost(host);
-            // TODO Replace factorial division with a simplified form for
-            // increased numerical stability
-            final double invalidCombinations =
-                    MathUtils.factorialDouble(observedGuestCount);
-            final double totalCombinations =
-                    MathUtils.factorialDouble(completeGuestCount);
-
-            return (totalCombinations - invalidCombinations)
-                    / totalCombinations;
-        }
-
-        @Override
-        protected double
-                calculateProbabilityObserved(final
-                                             CophylogeneticTrajectoryState
-                                             state,
-                                             final Tree guestTree,
-                                             final
-                                             Reconciliation reconciliation) {
-
-            final int completeGuestCount = state.getGuestCountAtHost(host);
-            final double totalCombinations = MathUtils.factorialDouble(completeGuestCount);
-            return 1.0 / totalCombinations;
+        public double getHeight() {
+            return height;
         }
 
     }
 
     public static abstract class BirthEvent extends SpeciationEvent {
 
-        final protected NodeRef guest;
         final protected NodeRef sourceHost;
         final protected NodeRef destinationHost;
 
         public BirthEvent(final String eventName,
                           final double eventHeight,
-                          final NodeRef guest,
                           final NodeRef sourceHost,
                           final NodeRef destinationHost) {
             super(eventName, eventHeight);
-            this.guest = guest;
             this.sourceHost = sourceHost;
             this.destinationHost = destinationHost;
         }
@@ -215,86 +132,38 @@ public abstract class CophylogeneticEvent {
         }
 
         @Override
-        public void mutateTrajectory(final MutableCophylogeneticTrajectoryState state) {
-            state.incrementGuestCountAtHost(guest, destinationHost);
-        }
-
-        @Override
-        protected double
-                calculateProbabilityUnobserved(final
-                                               CophylogeneticTrajectoryState
-                                               state,
-                                               final Tree guestTree,
-                                               final
-                                               Reconciliation reconciliation) {
-
-            return 1.0;
-        }
-
-        @Override
-        protected double
-                calculateProbabilityObserved(final
-                                             CophylogeneticTrajectoryState
-                                             state,
-                                             final Tree guestTree,
-                                             final
-                                             Reconciliation reconciliation) {
-
-            final int completeGuestCountSource =
-                    state.getGuestCountAtHost(guest, sourceHost);
-
-            final long totalCombinations;
-            if (sourceHost.equals(destinationHost)) {
-                totalCombinations = CophyUtils
-                        .extendedBinomialCoefficient(completeGuestCountSource,
-                                                     2);
+        public double mutateTrajectory(final TrajectoryState state) {
+            state.increment(destinationHost);
+            final Set<NodeRef> lineages = state.getGuestLineages(sourceHost);
+            if (CophyUtils.nextBoolean(lineages.size() / (double) state.getGuestCount(sourceHost))) {
+                final NodeRef affectedLineage = CophyUtils.getRandomElement(lineages);
+                if (MathUtils.nextBoolean())
+                    state.setGuestLineageHost(affectedLineage, destinationHost);
+                return 2.0;
             } else {
-                final int completeGuestCountDestination =
-                        state.getGuestCountAtHost(guest, destinationHost);
-
-                totalCombinations = completeGuestCountSource
-                        * completeGuestCountDestination;
-
+                return 1.0;
             }
-
-            return 1.0 / totalCombinations;
         }
 
     }
 
     public static abstract class DeathEvent extends CophylogeneticEvent {
 
-        final protected NodeRef guest;
         final protected NodeRef host;
 
         public DeathEvent(final String eventName,
-                          final double eventHeight,
-                          final NodeRef guest,
+                          final double waitingTime,
                           final NodeRef host) {
-            super(eventName, eventHeight);
-            this.guest = guest;
+            super(eventName, waitingTime);
             this.host = host;
         }
 
         @Override
-        public void mutateTrajectory(final MutableCophylogeneticTrajectoryState state)
-                throws CophylogeneticEventFailedException {
-            try {
-                state.decrementGuestCountAtHost(guest, host);
-            } catch (final InvalidCophylogeneticTrajectoryStateException e) {
-                throw new CophylogeneticEventFailedException(this);
-            }
-        }
-
-    }
-
-    public static class CophylogeneticEventFailedException
-            extends RuntimeException {
-
-        private static final long serialVersionUID = -1074026006660524662L;
-
-        public CophylogeneticEventFailedException(final CophylogeneticEvent event) {
-            super(event.getName() + " failed to make valid change to state");
+        public double mutateTrajectory(final TrajectoryState state) {
+            if (CophyUtils.nextBoolean(state.getGuestLineageCount(host) / (double) state.getGuestCount(host)))
+                return 0.0;
+            state.decrement(host);
+            return 1.0;
         }
 
     }

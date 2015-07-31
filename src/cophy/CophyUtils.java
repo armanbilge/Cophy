@@ -247,4 +247,8 @@ public final class CophyUtils {
         return MathUtils.nextExponential(lambda);
     }
 
+    public static boolean nextBoolean(final double p) {
+        return MathUtils.nextDouble() < p;
+    }
+
 }

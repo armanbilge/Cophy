@@ -25,7 +25,6 @@ import java.util.*;
 
 import cophy.CophyUtils;
 import cophy.simulation.CophylogeneticEvent.SpeciationEvent;
-import cophy.simulation.CophylogeneticTrajectoryState;
 import cophy.simulation.CophylogenySimulator;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
@@ -46,7 +45,7 @@ public class CophylogenyLikelihood extends PFCophylogenyLikelihood {
     private static final long serialVersionUID = -6527862383425163978L;
 
     final protected CophylogenySimulator<?> simulator;
-    final protected Particle<CophylogeneticTrajectoryState>[] particles;
+    final protected Particle<TrajectoryState>[] particles;
     final int particleCount;
 
     @SuppressWarnings("unchecked")
@@ -134,7 +133,7 @@ public class CophylogenyLikelihood extends PFCophylogenyLikelihood {
                         rho *= Math.pow(noSamplingProbability, completeCount - 1);
                     }
                     final int extinctGuestCount =
-                            trajectory.getGuestCountAtHost(CophylogeneticTrajectoryState.NULL_GUEST, host);
+                            trajectory.getGuestCountAtHost(TrajectoryState.NULL_GUEST, host);
                     rho *= Math.pow(noSamplingProbability, extinctGuestCount);
                 }
 

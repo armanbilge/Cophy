@@ -22,15 +22,9 @@
 package cophy.simulation;
 
 import cophy.model.CophylogenyModel;
-import cophy.simulation.CophylogeneticEvent.BirthEvent;
+import cophy.model.TrajectoryState;
 import cophy.simulation.CophylogeneticEvent.CospeciationEvent;
-import cophy.simulation.CophylogeneticEvent.SpeciationEvent;
-import dr.evolution.tree.FlexibleNode;
-import dr.evolution.tree.FlexibleTree;
-import dr.evolution.tree.MutableTree;
-import dr.evolution.tree.MutableTreeListener;
-import dr.evolution.tree.NodeRef;
-import dr.evolution.tree.Tree;
+import dr.evolution.tree.*;
 
 import java.util.NavigableMap;
 import java.util.TreeMap;
@@ -45,36 +39,48 @@ public abstract class CophylogenySimulator<M extends CophylogenyModel> {
     public static final String HOST = "host";
     public static final String EXTINCT = "extinct";
 
-    protected final M model;
-    protected final boolean complete;
+    private final M model;
+    private final boolean complete;
 
-    protected final NavigableMap<Double,CospeciationEvent> cospeciationEvents;
+    private final NavigableMap<Double,CospeciationEvent> cospeciationEvents;
+
+    private boolean cospeciationsKnown = false;
 
     public CophylogenySimulator(final M model, final boolean complete) {
         this.model = model;
         this.complete = complete;
         final Tree hostTree = model.getHostTree();
         cospeciationEvents = new TreeMap<Double, CospeciationEvent>();
-        resetCospeciationEvents();
         if (hostTree instanceof MutableTree) {
             ((MutableTree) hostTree).addMutableTreeListener(new MutableTreeListener() {
                 @Override
                 public void treeChanged(final Tree hostTree) {
-                    resetCospeciationEvents();
+                    cospeciationsKnown = false;
                 }
             });
         }
     }
 
-    protected void resetCospeciationEvents() {
+    private void initializeCospeciationEvents() {
         cospeciationEvents.clear();
         final Tree hostTree = model.getHostTree();
         for (int i = 0; i < hostTree.getInternalNodeCount(); ++i) {
-            final NodeRef node = hostTree.getInternalNode(i);
-            final double height = hostTree.getNodeHeight(node);
-            final CospeciationEvent event = new CospeciationEvent(hostTree, node, height);
+            final NodeRef host = hostTree.getInternalNode(i);
+            final double height = hostTree.getNodeHeight(host);
+            final CospeciationEvent event = new CospeciationEvent(host, hostTree.getChild(host, 0), hostTree.getChild(host, 1), height);
             cospeciationEvents.put(height, event);
+            cospeciationsKnown = true;
         }
+    }
+
+    public NavigableMap<Double,CospeciationEvent> getCospeciationEvents() {
+        if (!cospeciationsKnown)
+            initializeCospeciationEvents();
+        return cospeciationEvents;
+    }
+
+    protected final boolean isComplete() {
+        return complete;
     }
 
     public FlexibleTree createTree() {
@@ -179,68 +185,61 @@ public abstract class CophylogenySimulator<M extends CophylogenyModel> {
                                final double height);
 
 
-    public MutableCophylogeneticTrajectoryState createTrajectory(final Tree guest) {
-        return new SimpleCophylogeneticTrajectoryState(guest, model);
+    public TrajectoryState createTrajectory(final Tree guest) {
+        return new TrajectoryState(getModel().getOriginHeight(), guest.getRoot(), getModel().getHostTree().getRoot());
     }
 
-    public void resumeSimulation(final MutableCophylogeneticTrajectoryState state, final double until) {
+    public void resumeSimulation(final TrajectoryState state, final double until) {
 
         CospeciationEvent nextCospeciationEvent = nextCospeciationEvent(state.getHeight());
         while (state.getHeight() > Math.max(until, nextCospeciationEvent.getHeight())) {
 
             final CophylogeneticEvent nextEvent = nextEvent(state);
-            final double nextEventHeight = nextEvent.getHeight();
+            final double nextEventHeight = state.getHeight() - nextEvent.getWaitingTime();
             if (nextEventHeight <= until) {
                 state.setHeight(until);
                 break;
             } else if (nextEventHeight <= nextCospeciationEvent.getHeight()) {
-                state.applyEvent(nextCospeciationEvent);
+                nextCospeciationEvent.apply(state);
                 nextCospeciationEvent = nextCospeciationEvent(state.getHeight());
             } else {
-                state.applyEvent(nextEvent);
+                nextEvent.apply(state);
             }
 
         }
 
     }
 
-    protected abstract CophylogeneticEvent nextEvent(final CophylogeneticTrajectoryState state);
+    protected abstract CophylogeneticEvent nextEvent(final TrajectoryState state);
 
     protected CospeciationEvent nextCospeciationEvent(final double height) {
         return cospeciationEvents.lowerEntry(height).getValue();
     }
 
 
-    public SpeciationEvent
-            simulateSpeciationEvent(final MutableCophylogeneticTrajectoryState state,
+    public double
+            simulateSpeciationEvent(final TrajectoryState state,
                                     final double height,
                                     final NodeRef guest,
                                     final NodeRef host) {
 
         final Tree hostTree = model.getHostTree();
         if (hostTree.getNodeHeight(host) == height) // Cospeciation event
-            return simulateCospeciationEvent(state, height, host);
+            return simulateCospeciationEvent(state, height);
         else // Birth event
             return simulateBirthEvent(state, height, guest, host);
 
     }
 
-    protected CospeciationEvent
-            simulateCospeciationEvent(final MutableCophylogeneticTrajectoryState state,
-                                      final double height,
-                                      final NodeRef host) {
+    protected double
+            simulateCospeciationEvent(final TrajectoryState state,
+                                      final double height) {
 
-        final CospeciationEvent event =
-                new CospeciationEvent(model.getHostTree(),
-                                      host,
-                                      height);
-        state.applyEvent(event);
-
-        return event;
+        return getCospeciationEvents().get(height).apply(state);
     }
 
-    protected abstract BirthEvent
-            simulateBirthEvent(MutableCophylogeneticTrajectoryState state,
+    protected abstract double
+            simulateBirthEvent(TrajectoryState state,
                                double height,
                                NodeRef guest,
                                NodeRef host);
@@ -248,4 +247,5 @@ public abstract class CophylogenySimulator<M extends CophylogenyModel> {
     public M getModel() {
         return model;
     }
+
 }

@@ -22,24 +22,18 @@
 package cophy.dhsl;
 
 import cophy.CophyUtils;
+import cophy.model.TrajectoryState;
 import cophy.simulation.CophylogeneticEvent;
 import cophy.simulation.CophylogeneticEvent.BirthEvent;
 import cophy.simulation.CophylogeneticEvent.DeathEvent;
-import cophy.simulation.CophylogeneticTrajectoryState;
 import cophy.simulation.CophylogenySimulator;
 import dr.evolution.tree.FlexibleNode;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 import dr.math.MathUtils;
-import dr.xml.AbstractXMLObjectParser;
-import dr.xml.AttributeRule;
-import dr.xml.ElementRule;
-import dr.xml.XMLObject;
-import dr.xml.XMLParseException;
-import dr.xml.XMLSyntaxRule;
+import dr.xml.*;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -59,10 +53,10 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
                                            double height,
                                            final double until) {
 
-        final Tree hostTree = model.getHostTree();
-        final double duplicationRate = model.getDuplicationRate();
-        final double hostSwitchRate = model.getHostSwitchRate();
-        final double lossRate = model.getLossRate();
+        final Tree hostTree = getModel().getHostTree();
+        final double duplicationRate = getModel().getDuplicationRate();
+        final double hostSwitchRate = getModel().getHostSwitchRate();
+        final double lossRate = getModel().getLossRate();
 
         guestNode.setAttribute(HOST, hostNode);
 
@@ -107,7 +101,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
                 rightHost = hostNode;
                 break;
             case 1: // Loss event
-                if (!complete) return null;
+                if (!isComplete()) return null;
                 guestNode.setAttribute(EXTINCT, true);
                 break;
             case 2: // Host-switch event
@@ -138,7 +132,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
         guestNode.setHeight(height);
 
-        if (!complete) {
+        if (!isComplete()) {
             final boolean leftIsNull = (left == null);
             final boolean rightIsNull = (right == null);
             if (leftIsNull && rightIsNull) { // Entire lineage was lost
@@ -162,6 +156,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
                                      final NodeRef node,
                                      final double height) {
 
+        final DHSLModel model = getModel();
         final Tree hostTree = model.getHostTree();
         final FlexibleNode flexibleNode = (FlexibleNode) node;
         flexibleNode.setHeight(height);
@@ -219,8 +214,9 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
 
     @Override
-    protected CophylogeneticEvent nextEvent(final CophylogeneticTrajectoryState state) {
+    protected CophylogeneticEvent nextEvent(final TrajectoryState state) {
 
+        final DHSLModel model = getModel();
         final int guestCount = state.getGuestCount();
         final double normalizedDuplicationRate = guestCount * model.getDuplicationRate();
         final double normalizedHostSwitchRate = guestCount * model.getHostSwitchRate();
@@ -258,25 +254,27 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
         }
 
-        final Map<NodeRef,Integer> guestCounts = state.getGuestCounts();
-        final NodeRef guest = CophyUtils.nextWeightedObject(guestCounts);
-        final NodeRef host = CophyUtils.nextWeightedObject(state.getGuestCountAtHosts(guest));
+//        final Map<NodeRef,Integer> guestCounts = state.getGuestCounts();
+//        final NodeRef guest = CophyUtils.nextWeightedObject(guestCounts);
+//        final NodeRef host = CophyUtils.nextWeightedObject(state.getGuestCountAtHosts(guest));
+
+        final NodeRef host = CophyUtils.nextWeightedObject(state.getGuestCounts());
 
         final CophylogeneticEvent nextEvent;
 
 
         switch(nextEventType) {
             case 0: // Duplication event
-                nextEvent = new DuplicationEvent(nextEventHeight, guest, host);
+                nextEvent = new DuplicationEvent(nextEventHeight, host);
                 break;
             case 1: // Loss event
-                nextEvent = new LossEvent(nextEventHeight, guest, host);
+                nextEvent = new LossEvent(nextEventHeight, host);
                 break;
             case 2: // Host-switch event
                 final Set<NodeRef> potentialHosts = new HashSet<NodeRef>(state.getHosts());
                 potentialHosts.remove(host);
                 final NodeRef newHost = CophyUtils.getRandomElement(potentialHosts);
-                nextEvent = new HostSwitchEvent(nextEventHeight, guest, host, newHost);
+                nextEvent = new HostSwitchEvent(nextEventHeight, host, newHost);
                 break;
             default: // Should not be needed
                 throw new RuntimeException("Undefined event.");
@@ -287,12 +285,13 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
     }
 
     @Override
-    protected BirthEvent simulateBirthEvent(final MutableCophylogeneticTrajectoryState state,
+    protected double simulateBirthEvent(final TrajectoryState state,
                                      final double eventHeight,
                                      final NodeRef guest,
                                      final NodeRef host) {
 
-        final int weight = state.getGuestCountAtHost(guest, host);
+        final DHSLModel model = getModel();
+        final int weight = state.getGuestCount(host);
 
         final int nextEventType;
         if (state.getHostCount() > 1) {
@@ -311,7 +310,7 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
         switch(nextEventType) {
         case 0: // Duplication event
-            nextEvent = new DuplicationEvent(eventHeight, guest, host);
+            nextEvent = new DuplicationEvent(eventHeight, host);
             break;
         case 1: // Host-switch event
             final Set<NodeRef> potentialHosts =
@@ -319,39 +318,37 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
             potentialHosts.remove(host);
             final NodeRef newHost =
                     CophyUtils.getRandomElement(potentialHosts);
-            nextEvent = new HostSwitchEvent(eventHeight, guest, host, newHost);
+            nextEvent = new HostSwitchEvent(eventHeight, host, newHost);
             break;
         default: // Should not be needed
             throw new RuntimeException("Undefined event.");
         }
 
-        return nextEvent;
+        return model.getBirthRate();
 
     }
 
     protected static class DuplicationEvent extends BirthEvent {
         private static final String DUPLICATION_EVENT = "duplicationEvent";
         public DuplicationEvent(final double height,
-                                final NodeRef guest,
                                 final NodeRef host) {
-            super(DUPLICATION_EVENT, height, guest, host, host);
+            super(DUPLICATION_EVENT, height, host, host);
         }
     }
 
     protected static class HostSwitchEvent extends BirthEvent {
         private static final String HOST_SWITCH_EVENT = "hostSwitchEvent";
         public HostSwitchEvent(final double height,
-                               final NodeRef guest,
                                final NodeRef sourceHost,
                                final NodeRef destinationHost) {
-            super(HOST_SWITCH_EVENT, height, guest, sourceHost, destinationHost);
+            super(HOST_SWITCH_EVENT, height, sourceHost, destinationHost);
         }
     }
 
     protected static class LossEvent extends DeathEvent {
         private static final String LOSS_EVENT = "lossEvent";
-        public LossEvent(final double height, final NodeRef guest, final NodeRef host) {
-            super(LOSS_EVENT, height, guest, host);
+        public LossEvent(final double height, final NodeRef host) {
+            super(LOSS_EVENT, height, host);
         }
     }
 
