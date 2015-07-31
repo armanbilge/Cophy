@@ -1,7 +1,9 @@
 /*
- * The MIT License (MIT)
+ * InvalidTrajectoryException.java
  *
- * Copyright (c) 2015 Arman Bilge
+ * Cophy: Cophylogenetics for BEAST
+ *
+ * Copyright (c) 2015 Arman Bilge <armanbilge@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
