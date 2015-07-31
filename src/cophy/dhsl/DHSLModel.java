@@ -206,8 +206,8 @@ public class DHSLModel extends CophylogenyModel {
                                          birthDiffRateParameter,
                                          relativeDeathRateParameter,
                                          hostSwitchProportionParameter,
-                                         originHeightParameter,
                                          samplingProbabilityParameter,
+                                         originHeightParameter,
                                          units);
 
                 }

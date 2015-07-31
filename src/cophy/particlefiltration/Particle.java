@@ -37,7 +37,7 @@ public class Particle<T extends Copyable> implements Copyable {
     private final T value;
     private double weight;
 
-    protected Particle(final T value) {
+    public Particle(final T value) {
         this(value, 1.0);
     }
 

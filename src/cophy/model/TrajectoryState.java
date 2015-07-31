@@ -127,6 +127,10 @@ public class TrajectoryState implements Copyable {
         return lineages;
     }
 
+    public NodeRef getGuestLineageHost(final NodeRef guest) {
+        return guestLineageHosts.get(guest);
+    }
+
     public void setGuestLineageHost(final NodeRef guest, final NodeRef host) {
         guestLineageHosts.put(guest, host);
     }

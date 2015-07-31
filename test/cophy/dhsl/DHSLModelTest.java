@@ -24,7 +24,7 @@
  * SOFTWARE.
  */
 
-package cophy;
+package cophy.dhsl;
 
 import dr.evolution.io.Importer.ImportException;
 import org.junit.*;

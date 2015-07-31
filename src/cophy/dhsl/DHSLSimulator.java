@@ -291,12 +291,12 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
     @Override
     protected double simulateBirthEvent(final TrajectoryState state,
-                                     final double eventHeight,
-                                     final NodeRef guest,
-                                     final NodeRef host) {
+                                        final double eventHeight,
+                                        final NodeRef leftGuest,
+                                        final NodeRef rightGuest,
+                                        final NodeRef host) {
 
         final DHSLModel model = getModel();
-        final int weight = state.getGuestCount(host);
 
         final int nextEventType;
         if (state.getHostCount() > 1) {
@@ -315,7 +315,8 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
         switch(nextEventType) {
         case 0: // Duplication event
-            nextEvent = new DuplicationEvent(eventHeight, host);
+            state.increment(host);
+
             break;
         case 1: // Host-switch event
             final Set<NodeRef> potentialHosts =

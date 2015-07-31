@@ -194,8 +194,9 @@ public abstract class CophylogenySimulator<M extends CophylogenyModel> {
         return new TrajectoryState(getModel().getOriginHeight(), guest.getRoot(), getModel().getHostTree().getRoot());
     }
 
-    public void resumeSimulation(final TrajectoryState state, final double until) {
+    public double resumeSimulation(final TrajectoryState state, final double until) {
 
+        double p = 1.0;
         CospeciationEvent nextCospeciationEvent = nextCospeciationEvent(state.getHeight());
         while (state.getHeight() > Math.max(until, nextCospeciationEvent.getHeight())) {
 
@@ -205,13 +206,14 @@ public abstract class CophylogenySimulator<M extends CophylogenyModel> {
                 state.setHeight(until);
                 break;
             } else if (nextEventHeight <= nextCospeciationEvent.getHeight()) {
-                nextCospeciationEvent.apply(state);
+                p *= nextCospeciationEvent.apply(state);
                 nextCospeciationEvent = nextCospeciationEvent(state.getHeight());
             } else {
-                nextEvent.apply(state);
+                p *= nextEvent.apply(state);
             }
 
         }
+        return p;
 
     }
 
@@ -225,14 +227,13 @@ public abstract class CophylogenySimulator<M extends CophylogenyModel> {
     public double
             simulateSpeciationEvent(final TrajectoryState state,
                                     final double height,
-                                    final NodeRef guest,
                                     final NodeRef host) {
 
         final Tree hostTree = model.getHostTree();
         if (hostTree.getNodeHeight(host) == height) // Cospeciation event
             return simulateCospeciationEvent(state, height);
         else // Birth event
-            return simulateBirthEvent(state, height, guest, host);
+            return simulateBirthEvent(state, height, host);
 
     }
 
@@ -246,7 +247,6 @@ public abstract class CophylogenySimulator<M extends CophylogenyModel> {
     protected abstract double
             simulateBirthEvent(TrajectoryState state,
                                double height,
-                               NodeRef guest,
                                NodeRef host);
 
     public M getModel() {
