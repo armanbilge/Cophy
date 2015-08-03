@@ -66,7 +66,7 @@ public abstract class CophylogenySimulator<M extends CophylogenyModel> {
         }
     }
 
-    private void initializeCospeciationEvents() {
+    private void setupCospeciationEvents() {
         cospeciationEvents.clear();
         final Tree hostTree = model.getHostTree();
         for (int i = 0; i < hostTree.getInternalNodeCount(); ++i) {
@@ -80,7 +80,7 @@ public abstract class CophylogenySimulator<M extends CophylogenyModel> {
 
     public NavigableMap<Double,CospeciationEvent> getCospeciationEvents() {
         if (!cospeciationsKnown)
-            initializeCospeciationEvents();
+            setupCospeciationEvents();
         return cospeciationEvents;
     }
 

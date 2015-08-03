@@ -121,21 +121,51 @@ public class CophylogenyLikelihood extends PFCophylogenyLikelihood {
 
             }
 
-            final double meanWeight = totalWeight / particles.length;
+            final double meanWeight = totalWeight / particleCount;
             logLikelihood += Math.log(meanWeight);
 
             Particle.resample(particles);
 
         }
 
+        final CophylogenyModel model = simulator.getModel();
+
+        double totalWeight = 0.0;
         for (final Particle<TrajectoryState> particle : particles) {
 
             final TrajectoryState trajectory = particle.getValue();
             particle.multiplyWeight(simulator.resumeSimulation(trajectory, 0.0));
 
+            final int[] lineageCounts = new int[hostTree.getExternalNodeCount()];
+            for (int i = 0; i < guestTree.getExternalNodeCount(); ++i) {
+                final NodeRef guest = guestTree.getExternalNode(i);
+                final NodeRef host = reconciliation.getHost(guest);
+                ++lineageCounts[host.getNumber()];
+                if (!host.equals(trajectory.getGuestLineageHost(guest))) {
+                    particle.multiplyWeight(0.0);
+                    break;
+                } else {
+                    particle.multiplyWeight(model.getSamplingProbability(host));
+                }
+            }
+
+            if (particle.getWeight() > 0.0) {
+                for (int i = 0; i < hostTree.getExternalNodeCount(); ++i) {
+                    final NodeRef host = hostTree.getExternalNode(i);
+                    final double rho = model.getSamplingProbability(host);
+                    final int count = trajectory.getGuestCount(host) - trajectory.getGuestLineageCount(host);
+                    particle.multiplyWeight(Math.pow(1 - rho, count));
+                    if (particle.getWeight() == 0)
+                        break;
+                }
+            }
+
             totalWeight += particle.getWeight();
 
         }
+
+        final double meanWeight = totalWeight / particleCount;
+        logLikelihood += Math.log(meanWeight);
 
         return logLikelihood;
     }
