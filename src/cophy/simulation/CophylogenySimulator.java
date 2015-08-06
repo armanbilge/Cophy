@@ -28,10 +28,17 @@ package cophy.simulation;
 
 import cophy.model.CophylogenyModel;
 import cophy.model.TrajectoryState;
+import cophy.simulation.CophylogeneticEvent.BirthEvent;
 import cophy.simulation.CophylogeneticEvent.CospeciationEvent;
-import dr.evolution.tree.*;
+import dr.evolution.tree.FlexibleNode;
+import dr.evolution.tree.FlexibleTree;
+import dr.evolution.tree.MutableTree;
+import dr.evolution.tree.MutableTreeListener;
+import dr.evolution.tree.NodeRef;
+import dr.evolution.tree.Tree;
 
 import java.util.NavigableMap;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -226,28 +233,39 @@ public abstract class CophylogenySimulator<M extends CophylogenyModel> {
 
     public double
             simulateSpeciationEvent(final TrajectoryState state,
+                                    final Tree tree,
+                                    final Set<NodeRef> speciatingNodes,
                                     final double height,
                                     final NodeRef host) {
 
         final Tree hostTree = model.getHostTree();
         if (hostTree.getNodeHeight(host) == height) // Cospeciation event
-            return simulateCospeciationEvent(state, height);
+            return simulateCospeciationEvent(state, tree, speciatingNodes, height);
         else // Birth event
-            return simulateBirthEvent(state, height, host);
+            return simulateBirthEvent(state, tree, speciatingNodes, height, host);
 
     }
 
     protected double
             simulateCospeciationEvent(final TrajectoryState state,
+                                      final Tree tree,
+                                      final Set<NodeRef> speciatingNodes,
                                       final double height) {
 
-        return getCospeciationEvents().get(height).apply(state);
+        return getCospeciationEvents().get(height).apply(state, tree, speciatingNodes);
     }
 
-    protected abstract double
+    protected double
             simulateBirthEvent(TrajectoryState state,
+                               Tree tree,
+                               Set<NodeRef> speciatingNodes,
                                double height,
-                               NodeRef host);
+                               NodeRef host) {
+
+        return getModel().getBirthRate() * createBirthEvent(state, height, host).apply(state, tree, speciatingNodes);
+    }
+
+    protected abstract BirthEvent createBirthEvent(TrajectoryState state, double height, NodeRef host);
 
     public M getModel() {
         return model;

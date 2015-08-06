@@ -29,6 +29,7 @@ package cophy.simulation;
 import cophy.CophyUtils;
 import cophy.model.TrajectoryState;
 import dr.evolution.tree.NodeRef;
+import dr.evolution.tree.Tree;
 import dr.math.MathUtils;
 
 import java.util.Set;
@@ -52,10 +53,6 @@ public abstract class CophylogeneticEvent {
         return name;
     }
 
-    public boolean isSpeciation() {
-        return false;
-    }
-
     public double getWaitingTime() {
         return waitingTime;
     }
@@ -73,10 +70,12 @@ public abstract class CophylogeneticEvent {
             super(eventName, waitingTime);
         }
 
-        @Override
-        public final boolean isSpeciation() {
-            return true;
+        public final double apply(final TrajectoryState state, final Tree tree, final Set<NodeRef> speciatingNodes) {
+            state.forwardTime(getWaitingTime());
+            return mutateTrajectory(state, tree, speciatingNodes);
         }
+
+        public abstract double mutateTrajectory(TrajectoryState state, Tree tree, Set<NodeRef> speciatingNodes);
 
     }
 
@@ -106,6 +105,22 @@ public abstract class CophylogeneticEvent {
             for (final NodeRef lineage : lineages)
                 state.setGuestLineageHost(lineage, MathUtils.nextBoolean() ? leftChild : rightChild);
             return 1L << lineages.size(); // Premature optimization is the root of all evil!
+        }
+
+        @Override
+        public double mutateTrajectory(final TrajectoryState state, final Tree tree, final Set<NodeRef> speciatingNodes) {
+            state.setHeight(height);
+            final int n = state.removeGuests(host);
+            state.setGuestCount(leftChild, n);
+            state.setGuestCount(rightChild, n);
+            for (final NodeRef guest : speciatingNodes) {
+                final int i = MathUtils.nextInt(2);
+                final NodeRef leftGuest = tree.getChild(guest, i);
+                final NodeRef rightGuest = tree.getChild(guest, 1 - i);
+                state.setGuestLineageHost(leftGuest, leftChild);
+                state.setGuestLineageHost(rightGuest, rightChild);
+            }
+            return 1.0;
         }
 
         public double getHeight() {
@@ -148,6 +163,18 @@ public abstract class CophylogeneticEvent {
             } else {
                 return 1.0;
             }
+        }
+
+        @Override
+        public double mutateTrajectory(final TrajectoryState state, final Tree tree, final Set<NodeRef> speciatingNodes) {
+            state.increment(destinationHost);
+            final int i = MathUtils.nextInt(2);
+            final NodeRef speciatingNode = speciatingNodes.iterator().next();
+            final NodeRef leftGuest = tree.getChild(speciatingNode, i);
+            final NodeRef rightGuest = tree.getChild(speciatingNode, 1 - i);
+            state.setGuestLineageHost(leftGuest, sourceHost);
+            state.setGuestLineageHost(rightGuest, destinationHost);
+            return 1.0;
         }
 
     }

@@ -290,11 +290,9 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
     }
 
     @Override
-    protected double simulateBirthEvent(final TrajectoryState state,
-                                        final double eventHeight,
-                                        final NodeRef leftGuest,
-                                        final NodeRef rightGuest,
-                                        final NodeRef host) {
+    protected BirthEvent createBirthEvent(final TrajectoryState state,
+                                          final double eventHeight,
+                                          final NodeRef host) {
 
         final DHSLModel model = getModel();
 
@@ -311,27 +309,19 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
         }
 
-        final BirthEvent nextEvent;
-
         switch(nextEventType) {
         case 0: // Duplication event
-            state.increment(host);
-
-            break;
+            return new DuplicationEvent(eventHeight, host);
         case 1: // Host-switch event
             final Set<NodeRef> potentialHosts =
                     new HashSet<NodeRef>(state.getHosts());
             potentialHosts.remove(host);
             final NodeRef newHost =
                     CophyUtils.getRandomElement(potentialHosts);
-            nextEvent = new HostSwitchEvent(eventHeight, host, newHost);
-            break;
+            return new HostSwitchEvent(eventHeight, host, newHost);
         default: // Should not be needed
             throw new RuntimeException("Undefined event.");
         }
-
-        return model.getBirthRate();
-
     }
 
     protected static class DuplicationEvent extends BirthEvent {

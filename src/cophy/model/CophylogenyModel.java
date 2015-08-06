@@ -70,6 +70,10 @@ public abstract class CophylogenyModel extends AbstractModel implements Units {
 
     public abstract double getOriginHeight();
 
+    public abstract double getBirthRate();
+
+    public abstract double getDeathRate();
+
     public double getSamplingProbability(final NodeRef host) {
         return 1.0;
     }

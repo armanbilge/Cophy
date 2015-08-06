@@ -100,10 +100,12 @@ public class DHSLModel extends CophylogenyModel {
         return hostSwitchProportionParameter.getParameterValue(0);
     }
 
+    @Override
     public double getBirthRate() {
         return getBirthDiffRate() / (1 - getRelativeDeathRate());
     }
 
+    @Override
     public double getDeathRate() {
         return getBirthRate() - getBirthDiffRate();
     }

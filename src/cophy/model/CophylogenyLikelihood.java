@@ -31,9 +31,19 @@ import cophy.simulation.CophylogenySimulator;
 import dr.evolution.tree.NodeRef;
 import dr.evolution.tree.Tree;
 import dr.inference.model.Model;
-import dr.xml.*;
+import dr.xml.AbstractXMLObjectParser;
+import dr.xml.AttributeRule;
+import dr.xml.ElementRule;
+import dr.xml.XMLObject;
+import dr.xml.XMLParseException;
+import dr.xml.XMLSyntaxRule;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.NavigableMap;
+import java.util.Queue;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  *
@@ -107,15 +117,23 @@ public class CophylogenyLikelihood extends PFCophylogenyLikelihood {
                 final TrajectoryState trajectory = particle.getValue();
                 particle.multiplyWeight(simulator.resumeSimulation(trajectory, until));
 
+                if (particle.getWeight() == 0.0)
+                    break;
+
                 final Set<NodeRef> speciatingNodes = heightsToNodes.get(until);
+
                 for (final NodeRef speciatingNode : speciatingNodes) {
-                    final NodeRef speciatingNodeHost = reconciliation.getHost(speciatingNode);
                     if (!speciatingNode.equals(trajectory.getGuestLineageHost(speciatingNode))) {
                         particle.multiplyWeight(0.0);
                         break;
                     }
-                    particle.multiplyWeight(simulator.simulateSpeciationEvent(trajectory, until, speciatingNodeHost));
                 }
+
+                if (particle.getWeight() == 0.0)
+                    break;
+
+                final NodeRef host = reconciliation.getHost(speciatingNodes.iterator().next());
+                particle.multiplyWeight(simulator.simulateSpeciationEvent(trajectory, guestTree, speciatingNodes, until, host));
 
                 totalWeight += particle.getWeight();
 
@@ -182,7 +200,7 @@ public class CophylogenyLikelihood extends PFCophylogenyLikelihood {
 
                 private static final String
                         TRAJECTORY_PF_COPHYLOGENY_LIKELIHOOD =
-                        "trajectoryPFCophylogenyLikelihood";
+                        "cophylogenyLikelihood";
                 private static final String PARTICLE_COUNT = "particleCount";
 
                 @Override
