@@ -38,9 +38,9 @@ import java.util.*;
  */
 public class TrajectoryState implements Copyable {
 
-    private Map<NodeRef,Integer> guestCounts;
+    private final Map<NodeRef,Integer> guestCounts = new HashMap<NodeRef,Integer>();
     private int guestCount;
-    private Map<NodeRef,NodeRef> guestLineageHosts;
+    private final Map<NodeRef,NodeRef> guestLineageHosts = new HashMap<NodeRef,NodeRef>();
     private double height;
 
     public TrajectoryState(final double origin, final NodeRef guest, final NodeRef host) {
@@ -138,9 +138,9 @@ public class TrajectoryState implements Copyable {
     @Override
     public TrajectoryState copy() {
         final TrajectoryState copy = new TrajectoryState();
-        copy.guestCounts = new HashMap<NodeRef,Integer>(guestCounts);
+        copy.guestCounts.putAll(guestCounts);
         copy.guestCount = guestCount;
-        copy.guestLineageHosts = new HashMap<NodeRef,NodeRef>(guestLineageHosts);
+        copy.guestLineageHosts.putAll(guestLineageHosts);
         copy.height = height;
         return copy;
     }

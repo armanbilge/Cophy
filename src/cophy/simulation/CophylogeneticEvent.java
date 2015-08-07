@@ -153,9 +153,10 @@ public abstract class CophylogeneticEvent {
 
         @Override
         public double mutateTrajectory(final TrajectoryState state) {
-            state.increment(destinationHost);
             final Set<NodeRef> lineages = state.getGuestLineages(sourceHost);
-            if (CophyUtils.nextBoolean(lineages.size() / (double) state.getGuestCount(sourceHost))) {
+            final double lineageAffected = lineages.size() / (double) state.getGuestCount(sourceHost);
+            state.increment(destinationHost);
+            if (CophyUtils.nextBoolean(lineageAffected)) {
                 final NodeRef affectedLineage = CophyUtils.getRandomElement(lineages);
                 if (MathUtils.nextBoolean())
                     state.setGuestLineageHost(affectedLineage, destinationHost);

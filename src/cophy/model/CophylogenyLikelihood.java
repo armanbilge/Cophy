@@ -149,10 +149,15 @@ public class CophylogenyLikelihood extends PFCophylogenyLikelihood {
         final CophylogenyModel model = simulator.getModel();
 
         double totalWeight = 0.0;
+        double weight2 = 0.0;
         for (final Particle<TrajectoryState> particle : particles) {
 
             final TrajectoryState trajectory = particle.getValue();
             particle.multiplyWeight(simulator.resumeSimulation(trajectory, 0.0));
+
+            weight2 += particle.getWeight();
+
+            trajectory.setHeight(0.0);
 
             final int[] lineageCounts = new int[hostTree.getExternalNodeCount()];
             for (int i = 0; i < guestTree.getExternalNodeCount(); ++i) {
@@ -171,7 +176,7 @@ public class CophylogenyLikelihood extends PFCophylogenyLikelihood {
                 for (int i = 0; i < hostTree.getExternalNodeCount(); ++i) {
                     final NodeRef host = hostTree.getExternalNode(i);
                     final double rho = model.getSamplingProbability(host);
-                    final int count = trajectory.getGuestCount(host) - trajectory.getGuestLineageCount(host);
+                    final int count = trajectory.getGuestCount(host) - lineageCounts[host.getNumber()];
                     particle.multiplyWeight(Math.pow(1 - rho, count));
                     if (particle.getWeight() == 0)
                         break;
@@ -183,6 +188,8 @@ public class CophylogenyLikelihood extends PFCophylogenyLikelihood {
         }
 
         final double meanWeight = totalWeight / particleCount;
+        System.out.println(weight2 / particleCount);
+        System.out.println(meanWeight);
         logLikelihood += Math.log(meanWeight);
 
         return logLikelihood;

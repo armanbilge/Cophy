@@ -244,7 +244,7 @@ public final class CophyUtils {
     }
 
     public static final int nextWeightedInteger(final double...weights) {
-        return MathUtils.randomChoice(weights);
+        return MathUtils.randomChoicePDF(weights);
     }
 
     public static final double nextPoissonTime(final double...lambdas) {

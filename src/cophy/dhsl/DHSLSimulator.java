@@ -259,14 +259,9 @@ public class DHSLSimulator extends CophylogenySimulator<DHSLModel> {
 
         }
 
-//        final Map<NodeRef,Integer> guestCounts = state.getGuestCounts();
-//        final NodeRef guest = CophyUtils.nextWeightedObject(guestCounts);
-//        final NodeRef host = CophyUtils.nextWeightedObject(state.getGuestCountAtHosts(guest));
-
         final NodeRef host = CophyUtils.nextWeightedObject(state.getGuestCounts());
 
         final CophylogeneticEvent nextEvent;
-
 
         switch(nextEventType) {
             case 0: // Duplication event
